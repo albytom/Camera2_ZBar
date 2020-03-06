@@ -1,0 +1,62 @@
+[
+    {
+        "merged": "C:\\Users\\AlberDominic\\Documents\\Android_StPro\\BarcodeHub\\Camera2_ZBar\\Application\\build\\intermediates\\res\\merged\\debug\\layout_activity_camera.xml.flat",
+        "source": "C:\\Users\\AlberDominic\\Documents\\Android_StPro\\BarcodeHub\\Camera2_ZBar\\Application\\src\\main\\res\\layout\\activity_camera.xml"
+    },
+    {
+        "merged": "C:\\Users\\AlberDominic\\Documents\\Android_StPro\\BarcodeHub\\Camera2_ZBar\\Application\\build\\intermediates\\res\\merged\\debug\\layout-land_fragment_camera2_basic.xml.flat",
+        "source": "C:\\Users\\AlberDominic\\Documents\\Android_StPro\\BarcodeHub\\Camera2_ZBar\\Application\\src\\main\\res\\layout-land\\fragment_camera2_basic.xml"
+    },
+    {
+        "merged": "C:\\Users\\AlberDominic\\Documents\\Android_StPro\\BarcodeHub\\Camera2_ZBar\\Application\\build\\intermediates\\res\\merged\\debug\\drawable-mdpi_ic_action_info.png.flat",
+        "source": "C:\\Users\\AlberDominic\\Documents\\Android_StPro\\BarcodeHub\\Camera2_ZBar\\Application\\src\\main\\res\\drawable-mdpi\\ic_action_info.png"
+    },
+    {
+        "merged": "C:\\Users\\AlberDominic\\Documents\\Android_StPro\\BarcodeHub\\Camera2_ZBar\\Application\\build\\intermediates\\res\\merged\\debug\\drawable-xxhdpi_ic_launcher.png.flat",
+        "source": "C:\\Users\\AlberDominic\\Documents\\Android_StPro\\BarcodeHub\\Camera2_ZBar\\Application\\src\\main\\res\\drawable-xxhdpi\\ic_launcher.png"
+    },
+    {
+        "merged": "C:\\Users\\AlberDominic\\Documents\\Android_StPro\\BarcodeHub\\Camera2_ZBar\\Application\\build\\intermediates\\res\\merged\\debug\\layout_barcode_dialog.xml.flat",
+        "source": "C:\\Users\\AlberDominic\\Documents\\Android_StPro\\BarcodeHub\\Camera2_ZBar\\Application\\src\\main\\res\\layout\\barcode_dialog.xml"
+    },
+    {
+        "merged": "C:\\Users\\AlberDominic\\Documents\\Android_StPro\\BarcodeHub\\Camera2_ZBar\\Application\\build\\intermediates\\res\\merged\\debug\\drawable-mdpi_ic_launcher.png.flat",
+        "source": "C:\\Users\\AlberDominic\\Documents\\Android_StPro\\BarcodeHub\\Camera2_ZBar\\Application\\src\\main\\res\\drawable-mdpi\\ic_launcher.png"
+    },
+    {
+        "merged": "C:\\Users\\AlberDominic\\Documents\\Android_StPro\\BarcodeHub\\Camera2_ZBar\\Application\\build\\intermediates\\res\\merged\\debug\\layout_image_dialog.xml.flat",
+        "source": "C:\\Users\\AlberDominic\\Documents\\Android_StPro\\BarcodeHub\\Camera2_ZBar\\Application\\src\\main\\res\\layout\\image_dialog.xml"
+    },
+    {
+        "merged": "C:\\Users\\AlberDominic\\Documents\\Android_StPro\\BarcodeHub\\Camera2_ZBar\\Application\\build\\intermediates\\res\\merged\\debug\\drawable-hdpi_ic_action_info.png.flat",
+        "source": "C:\\Users\\AlberDominic\\Documents\\Android_StPro\\BarcodeHub\\Camera2_ZBar\\Application\\src\\main\\res\\drawable-hdpi\\ic_action_info.png"
+    },
+    {
+        "merged": "C:\\Users\\AlberDominic\\Documents\\Android_StPro\\BarcodeHub\\Camera2_ZBar\\Application\\build\\intermediates\\res\\merged\\debug\\drawable-hdpi_tile.9.png.flat",
+        "source": "C:\\Users\\AlberDominic\\Documents\\Android_StPro\\BarcodeHub\\Camera2_ZBar\\Application\\src\\main\\res\\drawable-hdpi\\tile.9.png"
+    },
+    {
+        "merged": "C:\\Users\\AlberDominic\\Documents\\Android_StPro\\BarcodeHub\\Camera2_ZBar\\Application\\build\\intermediates\\res\\merged\\debug\\drawable-hdpi_ic_launcher.png.flat",
+        "source": "C:\\Users\\AlberDominic\\Documents\\Android_StPro\\BarcodeHub\\Camera2_ZBar\\Application\\src\\main\\res\\drawable-hdpi\\ic_launcher.png"
+    },
+    {
+        "merged": "C:\\Users\\AlberDominic\\Documents\\Android_StPro\\BarcodeHub\\Camera2_ZBar\\Application\\build\\intermediates\\res\\merged\\debug\\drawable-xxhdpi_cross_hair_land.png.flat",
+        "source": "C:\\Users\\AlberDominic\\Documents\\Android_StPro\\BarcodeHub\\Camera2_ZBar\\Application\\src\\main\\res\\drawable-xxhdpi\\cross_hair_land.png"
+    },
+    {
+        "merged": "C:\\Users\\AlberDominic\\Documents\\Android_StPro\\BarcodeHub\\Camera2_ZBar\\Application\\build\\intermediates\\res\\merged\\debug\\drawable-xhdpi_ic_launcher.png.flat",
+        "source": "C:\\Users\\AlberDominic\\Documents\\Android_StPro\\BarcodeHub\\Camera2_ZBar\\Application\\src\\main\\res\\drawable-xhdpi\\ic_launcher.png"
+    },
+    {
+        "merged": "C:\\Users\\AlberDominic\\Documents\\Android_StPro\\BarcodeHub\\Camera2_ZBar\\Application\\build\\intermediates\\res\\merged\\debug\\drawable-xxhdpi_ic_action_info.png.flat",
+        "source": "C:\\Users\\AlberDominic\\Documents\\Android_StPro\\BarcodeHub\\Camera2_ZBar\\Application\\src\\main\\res\\drawable-xxhdpi\\ic_action_info.png"
+    },
+    {
+        "merged": "C:\\Users\\AlberDominic\\Documents\\Android_StPro\\BarcodeHub\\Camera2_ZBar\\Application\\build\\intermediates\\res\\merged\\debug\\layout_fragment_camera2_basic.xml.flat",
+        "source": "C:\\Users\\AlberDominic\\Documents\\Android_StPro\\BarcodeHub\\Camera2_ZBar\\Application\\src\\main\\res\\layout\\fragment_camera2_basic.xml"
+    },
+    {
+        "merged": "C:\\Users\\AlberDominic\\Documents\\Android_StPro\\BarcodeHub\\Camera2_ZBar\\Application\\build\\intermediates\\res\\merged\\debug\\drawable-xhdpi_ic_action_info.png.flat",
+        "source": "C:\\Users\\AlberDominic\\Documents\\Android_StPro\\BarcodeHub\\Camera2_ZBar\\Application\\src\\main\\res\\drawable-xhdpi\\ic_action_info.png"
+    }
+]
