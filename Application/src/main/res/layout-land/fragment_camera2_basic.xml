@@ -53,7 +53,12 @@
                 android:layout_height="wrap_content"
                 android:gravity="center"
                 android:orientation="horizontal">
-
+                <Button
+                    android:id="@+id/zoom_in"
+                    android:layout_width="wrap_content"
+                    android:layout_height="wrap_content"
+                    android:layout_gravity="center"
+                    android:text="@string/zoom_in" />
                 <Button
                     android:id="@+id/scan_btn"
                     android:layout_width="wrap_content"
@@ -62,11 +67,11 @@
                     android:text="@string/scan" />
 
                 <Button
-                    android:id="@+id/zoom"
+                    android:id="@+id/zoom_out"
                     android:layout_width="wrap_content"
                     android:layout_height="wrap_content"
                     android:layout_gravity="center"
-                    android:text="@string/zoom" />
+                    android:text="@string/zoom_out" />
             </LinearLayout>
 
             <!--<ImageButton

@@ -160,7 +160,7 @@ public class ZBarDecoder implements GraphicDecoder, Handler.Callback {
         mImageScanner.setConfig(0, Config.Y_DENSITY, 3);
         mImageScanner.setConfig(0, Config.ENABLE, 0);//Disable all the types
         if (symbolTypeArray == null) {
-            symbolTypeArray = new int[]{EAN8, ISBN10, UPCA, EAN13, ISBN13, I25//, UPCE, DATABAR, PARTIAL
+            symbolTypeArray = new int[]{EAN8, ISBN13, /*ISBN10,*/ UPCA, EAN13,  I25, UPCE, DATABAR, PARTIAL
                     , DATABAR_EXP, CODABAR, CODE39, PDF417, QRCODE, CODE93, CODE128};
         }
         for (int symbolType : symbolTypeArray) {
@@ -462,6 +462,63 @@ public class ZBarDecoder implements GraphicDecoder, Handler.Callback {
             }
         }
 
+    }
+    public String getBarcodeType(int type){
+        String codeType = "";
+        switch (type){
+            case EAN8:
+                codeType = "EAN8";
+                break;
+            case ISBN13:
+                codeType = "ISBN13";
+                break;
+            case ISBN10:
+                codeType = "ISBN10";
+                break;
+            case UPCA:
+                codeType = "UPCA";
+                break;
+            case EAN13:
+                codeType = "EAN13";
+                break;
+            case I25:
+                codeType = "I25";
+                break;
+            case UPCE:
+                codeType = "UPCE";
+                break;
+            case DATABAR:
+                codeType = "DATABAR";
+                break;
+            case PARTIAL:
+                codeType = "PARTIAL";
+                break;
+            case DATABAR_EXP:
+                codeType = "DATABAR_EXP";
+                break;
+            case CODABAR:
+                codeType = "CODABAR";
+                break;
+            case CODE39:
+                codeType = "CODE39";
+                break;
+            case PDF417:
+                codeType = "PDF417";
+                break;
+            case QRCODE:
+                codeType = "QRCODE";
+                break;
+            case CODE93:
+                codeType = "CODE93";
+                break;
+            case CODE128:
+                codeType = "CODE128";
+                break;
+            default:
+                codeType = "UNKNOWN";
+                break;
+        }
+        return codeType;
     }
 
 }

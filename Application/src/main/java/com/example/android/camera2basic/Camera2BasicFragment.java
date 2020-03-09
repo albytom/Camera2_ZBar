@@ -26,13 +26,13 @@ import android.content.pm.PackageManager;
 import android.content.res.Configuration;
 import android.graphics.Bitmap;
 import android.graphics.BitmapFactory;
+import android.graphics.Camera;
 import android.graphics.ImageFormat;
 import android.graphics.Matrix;
 import android.graphics.Point;
 import android.graphics.Rect;
 import android.graphics.RectF;
 import android.graphics.SurfaceTexture;
-import android.hardware.Camera;
 import android.hardware.camera2.CameraAccessException;
 import android.hardware.camera2.CameraCaptureSession;
 import android.hardware.camera2.CameraCharacteristics;
@@ -42,6 +42,7 @@ import android.hardware.camera2.CameraMetadata;
 import android.hardware.camera2.CaptureRequest;
 import android.hardware.camera2.CaptureResult;
 import android.hardware.camera2.TotalCaptureResult;
+import android.hardware.camera2.params.MeteringRectangle;
 import android.hardware.camera2.params.StreamConfigurationMap;
 import android.media.Image;
 import android.media.ImageReader;
@@ -96,7 +97,7 @@ import me.dm7.barcodescanner.core.DisplayUtils;
 import static android.os.Environment.getExternalStorageDirectory;
 
 public class Camera2BasicFragment extends Fragment
-        implements View.OnClickListener, ActivityCompat.OnRequestPermissionsResultCallback, GraphicDecoder.DecodeListener {
+        implements View.OnClickListener, ActivityCompat.OnRequestPermissionsResultCallback, GraphicDecoder.DecodeListener, View.OnTouchListener {
     private Dialog mBarcodeDialog;
     private ImageScanner mScanner;
     private List<BarcodeFormat> mFormats;
@@ -107,7 +108,8 @@ public class Camera2BasicFragment extends Fragment
     private static final int REQUEST_CAMERA_PERMISSION = 1;
     private static final String FRAGMENT_DIALOG = "dialog";
     public float finger_spacing = 0;
-    public int mZoom_level = 1;
+    private float mZoom_level = 0;
+    private float MAX_ZOOM_LEVEL = 10;
 
     private Bitmap mBitmap;
     private int[] mPixels;
@@ -165,7 +167,6 @@ public class Camera2BasicFragment extends Fragment
      * Max preview height that is guaranteed by Camera2 API
      */
     private static final int MAX_PREVIEW_HEIGHT = 1080;
-    Rect zoom = null;
     /**
      * {@link TextureView.SurfaceTextureListener} handles several lifecycle events on a
      * {@link TextureView}.
@@ -177,6 +178,7 @@ public class Camera2BasicFragment extends Fragment
         public void onSurfaceTextureAvailable(SurfaceTexture texture, int width, int height) {
             openCamera(width, height);
             setupScanner();
+            initZoom();
         }
 
         @Override
@@ -219,6 +221,8 @@ public class Camera2BasicFragment extends Fragment
      * The {@link android.util.Size} of camera preview.
      */
     private Size mPreviewSize;
+
+    private ZBarDecoder mZBarDecoder;
 
     /**
      * {@link CameraDevice.StateCallback} is called when {@link CameraDevice} changes its state.
@@ -289,9 +293,12 @@ public class Camera2BasicFragment extends Fragment
         }
 
     };
+    private Zoom mZoom;
 
-    /**Get value of barcode and display image and barcode value in dialog*/
-    private void showData(Image pImage){
+    /**
+     * Get value of barcode and display image and barcode value in dialog
+     */
+    private void showData(Image pImage) {
     }
 
     /**
@@ -354,7 +361,7 @@ public class Camera2BasicFragment extends Fragment
                         if (aeState == null ||
                                 aeState == CaptureResult.CONTROL_AE_STATE_CONVERGED) {
                             mState = STATE_PICTURE_TAKEN;
-                            captureStillPicture();
+                            captureStillPicture();//capture happens here at scanning
                         } else {
                             runPrecaptureSequence();
                         }
@@ -479,7 +486,9 @@ public class Camera2BasicFragment extends Fragment
     public void onViewCreated(final View view, Bundle savedInstanceState) {
         view.findViewById(R.id.scan_btn).setOnClickListener(this);
         //view.findViewById(R.id.info).setOnClickListener(this);
-        view.findViewById(R.id.zoom).setOnClickListener(this);
+        view.findViewById(R.id.zoom_in).setOnClickListener(this);
+        view.findViewById(R.id.zoom_out).setOnClickListener(this);
+        view.findViewById(R.id.texture).setOnTouchListener(this);
         mTextureView = (AutoFitTextureView) view.findViewById(R.id.texture);
     }
 
@@ -659,7 +668,6 @@ public class Camera2BasicFragment extends Fragment
             requestCameraPermission();
             return;
         }
-        zoom = new Rect(0, 0, width, height);
         setUpCameraOutputs(width, height);
         configureTransform(width, height);
         Activity activity = getActivity();
@@ -694,6 +702,10 @@ public class Camera2BasicFragment extends Fragment
                 mImageReader.close();
                 mImageReader = null;
             }
+            if(null != mZoom){
+                mZoom = null;
+            }
+            mZoom_level = 0;
         } catch (InterruptedException e) {
             throw new RuntimeException("Interrupted while trying to lock camera closing.", e);
         } finally {
@@ -832,9 +844,28 @@ public class Camera2BasicFragment extends Fragment
             // This is how to tell the camera to lock focus.
             mPreviewRequestBuilder.set(CaptureRequest.CONTROL_AF_TRIGGER,
                     CameraMetadata.CONTROL_AF_TRIGGER_START);
+            mPreviewRequestBuilder.set(CaptureRequest.SCALER_CROP_REGION, mZoom.getCropRegion());
             // Tell #mCaptureCallback to wait for the lock.
             mState = STATE_WAITING_LOCK;
             mCaptureSession.capture(mPreviewRequestBuilder.build(), mCaptureCallback,
+                    mBackgroundHandler);
+        } catch (CameraAccessException e) {
+            e.printStackTrace();
+        }
+    }
+
+    /**
+     * Lock the focus as the first step for a still image capture.
+     */
+    private void lockFocusForScan() {
+        try {
+            // This is how to tell the camera to lock focus.
+            mPreviewRequestBuilder.set(CaptureRequest.CONTROL_AF_TRIGGER,
+                    CameraMetadata.CONTROL_AF_TRIGGER_START);
+            //mPreviewRequestBuilder.set(CaptureRequest.SCALER_CROP_REGION, mZoom.getCropRegion());
+            // Tell #mCaptureCallback to wait for the lock.
+            mState = STATE_WAITING_LOCK;
+            mCaptureSession.setRepeatingRequest(mPreviewRequestBuilder.build(), mCaptureCallback,
                     mBackgroundHandler);
         } catch (CameraAccessException e) {
             e.printStackTrace();
@@ -877,7 +908,7 @@ public class Camera2BasicFragment extends Fragment
             // Use the same AE and AF modes as the preview.
             captureBuilder.set(CaptureRequest.CONTROL_AF_MODE,
                     CaptureRequest.CONTROL_AF_MODE_CONTINUOUS_PICTURE);
-//            captureBuilder.set(CaptureRequest.SCALER_CROP_REGION, zoom);
+            captureBuilder.set(CaptureRequest.SCALER_CROP_REGION, mZoom.getCropRegion());
             setAutoFlash(captureBuilder);
 
             // Orientation
@@ -891,7 +922,7 @@ public class Camera2BasicFragment extends Fragment
                 public void onCaptureCompleted(@NonNull CameraCaptureSession session,
                                                @NonNull CaptureRequest request,
                                                @NonNull TotalCaptureResult result) {
-                   // showToast("Saved: " + mFile);
+                    // showToast("Saved: " + mFile);
                     Log.d(TAG, mFile.toString());
                     unlockFocus();
                 }
@@ -903,6 +934,7 @@ public class Camera2BasicFragment extends Fragment
         } catch (CameraAccessException e) {
             e.printStackTrace();
         }
+        Log.e("Zoom", "mZoom_level: " + mZoom_level + " " + "mZoom: "+ mZoom.getCropRegion());
     }
 
     /**
@@ -928,11 +960,15 @@ public class Camera2BasicFragment extends Fragment
             // Reset the auto-focus trigger
             mPreviewRequestBuilder.set(CaptureRequest.CONTROL_AF_TRIGGER,
                     CameraMetadata.CONTROL_AF_TRIGGER_CANCEL);
+            mZoom.setZoom(mPreviewRequestBuilder, mZoom_level);
+            mPreviewRequestBuilder.set(CaptureRequest.SCALER_CROP_REGION, mZoom.getCropRegion());
             setAutoFlash(mPreviewRequestBuilder);
             mCaptureSession.capture(mPreviewRequestBuilder.build(), mCaptureCallback,
                     mBackgroundHandler);
             // After this, the camera will go back to the normal state of preview.
             mState = STATE_PREVIEW;
+            // keeping the camera preview.
+            mPreviewRequest = mPreviewRequestBuilder.build();
             mCaptureSession.setRepeatingRequest(mPreviewRequest, mCaptureCallback,
                     mBackgroundHandler);
         } catch (CameraAccessException e) {
@@ -945,16 +981,21 @@ public class Camera2BasicFragment extends Fragment
         switch (view.getId()) {
             case R.id.scan_btn:
                 takePicture();
-
                 break;
-            case R.id.zoom:
+            case R.id.zoom_in:
                 try {
-                    zoom();
+                    zoomIn();
                 } catch (CameraAccessException pE) {
                     pE.printStackTrace();
                 }
                 break;
-
+            case R.id.zoom_out:
+                try {
+                    zoomOut();
+                } catch (CameraAccessException pE) {
+                    pE.printStackTrace();
+                }
+                break;
             /*case R.id.info:
                 Activity activity = getActivity();
                 if (null != activity) {
@@ -977,7 +1018,7 @@ public class Camera2BasicFragment extends Fragment
         }
     }
 
-    public void displayImageBarcode(Image pImage){
+    public void displayImageBarcode(Image pImage) {
         ByteBuffer buffer = pImage.getPlanes()[0].getBuffer();
 
         byte[] bytes = new byte[buffer.capacity()];
@@ -1001,14 +1042,15 @@ public class Camera2BasicFragment extends Fragment
         }
         mPixels = getBitmapPixels(mBitmap);
         mYUVFrameData = getYUVFrameData(mPixels, mWidth, mHeight);
-        takeOrientation(getContext());
+        //takeOrientation(getContext());
         if (mClipRectRatio == null) {
             mClipRectRatio = new RectF();
         }
         mClipRectRatio.set(0, 0, 1, 1);
-        new ZBarDecoder(this, null).decodeForResult(mBitmap, mClipRectRatio, 999);
+        mZBarDecoder.decodeForResult(mBitmap, mClipRectRatio, 999);
         pImage.close();
     }
+
     @Override
     public void decodeComplete(String result, int type, int quality, int requestCode) {
         if (result == null) return;
@@ -1025,7 +1067,7 @@ public class Camera2BasicFragment extends Fragment
         } else {
             mCount = 1;
             mResult = result;
-            showDialog_OnBarcodeFound(result);
+            showDialog_OnBarcodeFound(result, type);
         }
         Log.d(TAG, getClass().getName() + ".decodeComplete() -> " + mResult);
     }
@@ -1038,6 +1080,11 @@ public class Camera2BasicFragment extends Fragment
         bitmap.getPixels(pixels, 0, width, 0, 0, width, height);
         //bitmap.recycle();
         return pixels;
+    }
+
+    @Override
+    public boolean onTouch(View v, MotionEvent event) {
+        return false;
     }
 
     /**
@@ -1222,48 +1269,56 @@ public class Camera2BasicFragment extends Fragment
         }
     }
 
-
-    public void zoom() throws CameraAccessException {
-        mZoom_level++;
-        CameraManager manager = (CameraManager) getActivity().getSystemService(Context.CAMERA_SERVICE);
-        CameraCharacteristics characteristics = manager.getCameraCharacteristics(mCameraId);
-        float maxzoom = (characteristics.get(CameraCharacteristics.SCALER_AVAILABLE_MAX_DIGITAL_ZOOM)) * 10;
-        Rect m = characteristics.get(CameraCharacteristics.SENSOR_INFO_ACTIVE_ARRAY_SIZE);
-        int minW = (int) (m.width() / maxzoom);
-        int minH = (int) (m.height() / maxzoom);
-        int difW = m.width() - minW;
-        int difH = m.height() - minH;
-        int cropW = difW / 100 * (int) mZoom_level;
-        int cropH = difH / 100 * (int) mZoom_level;
-        cropW -= cropW & 3;
-        cropH -= cropH & 3;
-        zoom = new Rect(cropW, cropH, m.width() - cropW, m.height() - cropH);
-        mPreviewRequestBuilder.set(CaptureRequest.SCALER_CROP_REGION, zoom);
-        mCaptureSession.setRepeatingRequest(mPreviewRequestBuilder.build(), mCaptureCallback, null);
-        configureTransform(getActivity().getResources().getDisplayMetrics().widthPixels,getActivity().getResources().getDisplayMetrics().heightPixels);
+    private void initZoom() {
+        try {
+            CameraManager manager = (CameraManager) getActivity().getSystemService(Context.CAMERA_SERVICE);
+            CameraCharacteristics characteristics = manager.getCameraCharacteristics(mCameraId);
+            MAX_ZOOM_LEVEL = characteristics.get(CameraCharacteristics.SCALER_AVAILABLE_MAX_DIGITAL_ZOOM);
+            mZoom = new Zoom(characteristics);
+        } catch (CameraAccessException e) {
+            e.printStackTrace();
+        }
+        Log.e("Zoom", "mZoom_level: " + mZoom_level );
     }
 
-    //Determine the space between the first two fingers
-    @SuppressWarnings("deprecation")
-    private float getFingerSpacing(MotionEvent event) {
-        float x = event.getX(0) - event.getX(1);
-        float y = event.getY(0) - event.getY(1);
-        return (float) Math.sqrt(x * x + y * y);
+    private void zoomIn() throws CameraAccessException {
+
+        if (mZoom_level >= MAX_ZOOM_LEVEL) {
+            mZoom_level = MAX_ZOOM_LEVEL;
+        } else {
+            mZoom_level += 2;
+            mZoom.setZoom(mPreviewRequestBuilder, mZoom_level);
+            mCaptureSession.setRepeatingRequest(mPreviewRequestBuilder.build(), mCaptureCallback, mBackgroundHandler);
+        }
+        Log.e("Zoom", "mZoom_level: " + mZoom_level + " " + "mZoom: "+ mZoom.getCropRegion());
+    }
+
+    private void zoomOut() throws CameraAccessException {
+
+        if (mZoom_level <= 0) {
+            mZoom_level = 0;
+        }else {
+            mZoom_level -= 2;
+            mZoom.setZoom(mPreviewRequestBuilder, mZoom_level);
+            mCaptureSession.setRepeatingRequest(mPreviewRequestBuilder.build(), mCaptureCallback, mBackgroundHandler);
+        }
+        Log.e("Zoom", "mZoom_level: " + mZoom_level + " " + "mZoom: "+ mZoom.getCropRegion());
     }
 
     public void setupScanner() {
+        mZBarDecoder = new ZBarDecoder(this, null);
         mScanner = new ImageScanner();
         mScanner.setConfig(0, Config.X_DENSITY, 3);
         mScanner.setConfig(0, Config.Y_DENSITY, 3);
 
         mScanner.setConfig(Symbol.NONE, Config.ENABLE, 0);
-        for(BarcodeFormat format : getFormats()) {
+        for (BarcodeFormat format : getFormats()) {
             mScanner.setConfig(format.getId(), Config.ENABLE, 1);
         }
     }
 
     public Collection<BarcodeFormat> getFormats() {
-        if(mFormats == null) {
+        if (mFormats == null) {
             return BarcodeFormat.ALL_FORMATS;
         }
         return mFormats;
@@ -1297,66 +1352,18 @@ public class Camera2BasicFragment extends Fragment
         }
         return frameData;
     }
-    public void setFrameRect(int frameLeft, int frameTop, int frameRight, int frameBottom) {
-        Log.d(TAG, getClass().getName() + ".setFrameRect() mOrientation = " + mSensorOrientation + " frameRect = " + frameLeft + "-" + frameTop
-                + "-" + frameRight + "-" + frameBottom);
-        if (mClipRectRatio == null) {
-            mClipRectRatio = new RectF();
-        }
-        if (frameLeft >= frameRight || frameTop >= frameBottom) {
-            mClipRectRatio.setEmpty();
-            return;
-        }
 
-        int previewWidth = mPreviewSize.getWidth();
-        int previewHeight = mPreviewSize.getHeight();
-        int surfaceWidth = getActivity().getResources().getDisplayMetrics().widthPixels;
-        int surfaceHeight = getActivity().getResources().getDisplayMetrics().heightPixels;
-        if (mSensorOrientation % 2 == 0) {
-            int temp = surfaceWidth;
-            surfaceWidth = surfaceHeight;
-            surfaceHeight = temp;
-        }
-        float ratio;//图像帧的缩放比，比如1000*2000像素的图像显示在100*200的View上，缩放比就是10
-        if (previewWidth * surfaceHeight < surfaceWidth * previewHeight) {//图像帧的宽超出了View的左边，以高计算缩放比例
-            ratio = 1F * surfaceHeight / previewHeight;
-        } else {//图像帧的高超出了View的底边，以宽计算缩放比例
-            ratio = 1F * surfaceWidth / previewWidth;
-        }
-        float leftRatio = Math.max(0, Math.min(1, ratio * frameLeft / surfaceWidth));//计算扫描框的左边在图像帧中所处的位置
-        float rightRatio = Math.max(0, Math.min(1, ratio * frameRight / surfaceWidth));//计算扫描框的右边在图像帧中所处的位置
-        float topRatio = Math.max(0, Math.min(1, ratio * frameTop / surfaceHeight));//计算扫描框的顶边在图像帧中所处的位置
-        float bottomRatio = Math.max(0, Math.min(1, ratio * frameBottom / surfaceHeight));//计算扫描框的底边在图像帧中所处的位置
-        switch (mOrientation) {//根据旋转角度对位置进行校正
-            case Surface.ROTATION_0: {
-                mClipRectRatio.set(topRatio, 1 - rightRatio, bottomRatio, 1 - leftRatio);
-                break;
-            }
-            case Surface.ROTATION_90: {
-                mClipRectRatio.set(leftRatio, topRatio, rightRatio, bottomRatio);
-                break;
-            }
-            case Surface.ROTATION_180: {
-                mClipRectRatio.set(1 - bottomRatio, leftRatio, 1 - topRatio, rightRatio);
-                break;
-            }
-            case Surface.ROTATION_270: {
-                mClipRectRatio.set(1 - rightRatio, 1 - bottomRatio, 1 - leftRatio, 1 - topRatio);
-                break;
-            }
-        }
-        Log.d(TAG, getClass().getName() + ".setFrameRect() mClipRectRatio = " + mClipRectRatio);
-    }
-
-    private void showDialog_OnBarcodeFound(final String barcodeData) {
+    private void showDialog_OnBarcodeFound(final String barcodeData, final int type) {
         getActivity().runOnUiThread(new Runnable() {
             @Override
             public void run() {
-                onPause();
+                //onPause();
                 mBarcodeDialog = new Dialog(getActivity());
                 mBarcodeDialog.setContentView(R.layout.barcode_dialog);
-                TextView titleTV = mBarcodeDialog.findViewById(R.id.result_tv);
-                titleTV.setText(barcodeData);
+                TextView titleTV = mBarcodeDialog.findViewById(R.id.title_tv);
+                titleTV.setText(mZBarDecoder.getBarcodeType(type));
+                TextView valueTV = mBarcodeDialog.findViewById(R.id.result_tv);
+                valueTV.setText(barcodeData);
                 Button nextBtn = mBarcodeDialog.findViewById(R.id.ok_btn);
                 Button rescanBtn = mBarcodeDialog.findViewById(R.id.scan_btn);
                 rescanBtn.setOnClickListener(new View.OnClickListener() {
@@ -1365,7 +1372,7 @@ public class Camera2BasicFragment extends Fragment
                         mBarcodeDialog.dismiss();
                         Toast.makeText(getActivity(), "Rescaning!", Toast.LENGTH_SHORT).show();
                         mResult = null;
-                        onResume();
+                        //onResume();
                     }
                 });
                 nextBtn.setOnClickListener(new View.OnClickListener() {
@@ -1374,13 +1381,14 @@ public class Camera2BasicFragment extends Fragment
                         mBarcodeDialog.dismiss();
                         Toast.makeText(getActivity(), "This is where you call your API with data from Barcode!", Toast.LENGTH_SHORT).show();
                         mResult = null;
-                        onResume();
+                        //onResume();
                     }
                 });
                 mBarcodeDialog.show();
             }
         });
     }
+
     private void takeOrientation(Context context) {
         WindowManager windowManager = (WindowManager) context.getSystemService(Context.WINDOW_SERVICE);
         if (windowManager != null) {
@@ -1388,4 +1396,5 @@ public class Camera2BasicFragment extends Fragment
         }
         Log.d(TAG, getClass().getName() + ".takeOrientation() mOrientation = " + mOrientation);
     }
+
 }
