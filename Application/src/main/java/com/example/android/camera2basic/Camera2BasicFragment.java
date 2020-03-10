@@ -24,9 +24,9 @@ import android.content.Context;
 import android.content.DialogInterface;
 import android.content.pm.PackageManager;
 import android.content.res.Configuration;
+import android.content.res.Resources;
 import android.graphics.Bitmap;
 import android.graphics.BitmapFactory;
-import android.graphics.Camera;
 import android.graphics.ImageFormat;
 import android.graphics.Matrix;
 import android.graphics.Point;
@@ -49,24 +49,19 @@ import android.media.ImageReader;
 import android.os.Bundle;
 import android.os.Handler;
 import android.os.HandlerThread;
-import android.os.Looper;
 import android.support.annotation.NonNull;
 import android.support.v4.app.ActivityCompat;
 import android.support.v4.app.DialogFragment;
 import android.support.v4.app.Fragment;
 import android.support.v4.content.ContextCompat;
-import android.text.TextUtils;
-import android.util.DisplayMetrics;
 import android.util.Log;
 import android.util.Size;
 import android.util.SparseIntArray;
 import android.view.LayoutInflater;
-import android.view.MotionEvent;
 import android.view.Surface;
 import android.view.TextureView;
 import android.view.View;
 import android.view.ViewGroup;
-import android.view.Window;
 import android.view.WindowManager;
 import android.widget.Button;
 import android.widget.ImageView;
@@ -76,13 +71,11 @@ import android.widget.Toast;
 import com.yanzhenjie.zbar.Config;
 import com.yanzhenjie.zbar.ImageScanner;
 import com.yanzhenjie.zbar.Symbol;
-import com.yanzhenjie.zbar.SymbolSet;
 
 import java.io.File;
 import java.io.FileOutputStream;
 import java.io.IOException;
 import java.nio.ByteBuffer;
-import java.nio.charset.StandardCharsets;
 import java.util.ArrayList;
 import java.util.Arrays;
 import java.util.Collection;
@@ -92,12 +85,10 @@ import java.util.List;
 import java.util.concurrent.Semaphore;
 import java.util.concurrent.TimeUnit;
 
-import me.dm7.barcodescanner.core.DisplayUtils;
-
 import static android.os.Environment.getExternalStorageDirectory;
 
 public class Camera2BasicFragment extends Fragment
-        implements View.OnClickListener, ActivityCompat.OnRequestPermissionsResultCallback, GraphicDecoder.DecodeListener, View.OnTouchListener {
+        implements View.OnClickListener, ActivityCompat.OnRequestPermissionsResultCallback, GraphicDecoder.DecodeListener {
     private Dialog mBarcodeDialog;
     private ImageScanner mScanner;
     private List<BarcodeFormat> mFormats;
@@ -110,6 +101,7 @@ public class Camera2BasicFragment extends Fragment
     public float finger_spacing = 0;
     private float mZoom_level = 0;
     private float MAX_ZOOM_LEVEL = 10;
+    private TextView zoom1, zoom2, zoom3;
 
     private Bitmap mBitmap;
     private int[] mPixels;
@@ -179,6 +171,7 @@ public class Camera2BasicFragment extends Fragment
             openCamera(width, height);
             setupScanner();
             initZoom();
+            setZoomLevel();
         }
 
         @Override
@@ -276,7 +269,6 @@ public class Camera2BasicFragment extends Fragment
      * This is the output file for our picture.
      */
     private File mFile;
-    private File mFile1;
 
     /**
      * This a callback object for the {@link ImageReader}. "onImageAvailable" will be called when a
@@ -486,9 +478,12 @@ public class Camera2BasicFragment extends Fragment
     public void onViewCreated(final View view, Bundle savedInstanceState) {
         view.findViewById(R.id.scan_btn).setOnClickListener(this);
         //view.findViewById(R.id.info).setOnClickListener(this);
-        view.findViewById(R.id.zoom_in).setOnClickListener(this);
-        view.findViewById(R.id.zoom_out).setOnClickListener(this);
-        view.findViewById(R.id.texture).setOnTouchListener(this);
+        zoom1 = view.findViewById(R.id.zoom_l1);
+        zoom1.setOnClickListener(this);
+        zoom2 = view.findViewById(R.id.zoom_l2);
+        zoom2.setOnClickListener(this);
+        zoom3 = view.findViewById(R.id.zoom_l3);
+        zoom3.setOnClickListener(this);
         mTextureView = (AutoFitTextureView) view.findViewById(R.id.texture);
     }
 
@@ -496,7 +491,6 @@ public class Camera2BasicFragment extends Fragment
     public void onActivityCreated(Bundle savedInstanceState) {
         super.onActivityCreated(savedInstanceState);
         mFile = new File(getExternalStorageDirectory() + "/pic31.jpg");
-        mFile1 = new File(getExternalStorageDirectory() + "/pic12.jpg");
     }
 
     @Override
@@ -514,6 +508,7 @@ public class Camera2BasicFragment extends Fragment
         } else {
             mTextureView.setSurfaceTextureListener(mSurfaceTextureListener);
         }
+        setZoomLevel();
     }
 
     @Override
@@ -702,7 +697,7 @@ public class Camera2BasicFragment extends Fragment
                 mImageReader.close();
                 mImageReader = null;
             }
-            if(null != mZoom){
+            if (null != mZoom) {
                 mZoom = null;
             }
             mZoom_level = 0;
@@ -770,9 +765,10 @@ public class Camera2BasicFragment extends Fragment
                             mCaptureSession = cameraCaptureSession;
                             try {
                                 // Auto focus should be continuous for camera preview.
-                                mPreviewRequestBuilder.set(CaptureRequest.CONTROL_AF_MODE,
-                                        CaptureRequest.CONTROL_AF_MODE_CONTINUOUS_PICTURE);
+                                /*mPreviewRequestBuilder.set(CaptureRequest.CONTROL_AF_MODE,
+                                        CaptureRequest.CONTROL_AF_MODE_CONTINUOUS_PICTURE);*//**Focus set to center by handleFocus*/
                                 // Flash is automatically enabled when necessary.
+                                handleFocus();
                                 setAutoFlash(mPreviewRequestBuilder);
 
                                 // Finally, we start displaying the camera preview.
@@ -842,8 +838,10 @@ public class Camera2BasicFragment extends Fragment
     private void lockFocus() {
         try {
             // This is how to tell the camera to lock focus.
-            mPreviewRequestBuilder.set(CaptureRequest.CONTROL_AF_TRIGGER,
-                    CameraMetadata.CONTROL_AF_TRIGGER_START);
+            /*mPreviewRequestBuilder.set(CaptureRequest.CONTROL_AF_TRIGGER,
+                    CameraMetadata.CONTROL_AF_TRIGGER_START);*//**Focus set to center by handleFocus*/
+            handleFocus();
+            if (mZoom == null) initZoom();
             mPreviewRequestBuilder.set(CaptureRequest.SCALER_CROP_REGION, mZoom.getCropRegion());
             // Tell #mCaptureCallback to wait for the lock.
             mState = STATE_WAITING_LOCK;
@@ -906,8 +904,10 @@ public class Camera2BasicFragment extends Fragment
             captureBuilder.addTarget(mImageReader.getSurface());
 
             // Use the same AE and AF modes as the preview.
-            captureBuilder.set(CaptureRequest.CONTROL_AF_MODE,
-                    CaptureRequest.CONTROL_AF_MODE_CONTINUOUS_PICTURE);
+            /*captureBuilder.set(CaptureRequest.CONTROL_AF_MODE,
+                    CaptureRequest.CONTROL_AF_MODE_CONTINUOUS_PICTURE);*//**Focus set to center by handleFocus*/
+            handleFocus();
+            if (mZoom == null) initZoom();
             captureBuilder.set(CaptureRequest.SCALER_CROP_REGION, mZoom.getCropRegion());
             setAutoFlash(captureBuilder);
 
@@ -934,7 +934,7 @@ public class Camera2BasicFragment extends Fragment
         } catch (CameraAccessException e) {
             e.printStackTrace();
         }
-        Log.e("Zoom", "mZoom_level: " + mZoom_level + " " + "mZoom: "+ mZoom.getCropRegion());
+        //Log.e("Zoom", "mZoom_level: " + mZoom_level + " " + "mZoom: " + mZoom.getCropRegion());
     }
 
     /**
@@ -982,16 +982,32 @@ public class Camera2BasicFragment extends Fragment
             case R.id.scan_btn:
                 takePicture();
                 break;
-            case R.id.zoom_in:
+            case R.id.zoom_l1:
+                zoom1.setBackground(getActivity().getResources().getDrawable(R.drawable.circle_press_bg));
+                zoom2.setBackground(getActivity().getResources().getDrawable(R.drawable.circle_bg));
+                zoom3.setBackground(getActivity().getResources().getDrawable(R.drawable.circle_bg));
                 try {
-                    zoomIn();
+                    zoom(0);
                 } catch (CameraAccessException pE) {
                     pE.printStackTrace();
                 }
                 break;
-            case R.id.zoom_out:
+            case R.id.zoom_l2:
+                zoom2.setBackground(getActivity().getResources().getDrawable(R.drawable.circle_press_bg));
+                zoom1.setBackground(getActivity().getResources().getDrawable(R.drawable.circle_bg));
+                zoom3.setBackground(getActivity().getResources().getDrawable(R.drawable.circle_bg));
                 try {
-                    zoomOut();
+                    zoom(2);
+                } catch (CameraAccessException pE) {
+                    pE.printStackTrace();
+                }
+                break;
+            case R.id.zoom_l3:
+                zoom3.setBackground(getActivity().getResources().getDrawable(R.drawable.circle_press_bg));
+                zoom2.setBackground(getActivity().getResources().getDrawable(R.drawable.circle_bg));
+                zoom1.setBackground(getActivity().getResources().getDrawable(R.drawable.circle_bg));
+                try {
+                    zoom(4);
                 } catch (CameraAccessException pE) {
                     pE.printStackTrace();
                 }
@@ -1080,11 +1096,6 @@ public class Camera2BasicFragment extends Fragment
         bitmap.getPixels(pixels, 0, width, 0, 0, width, height);
         //bitmap.recycle();
         return pixels;
-    }
-
-    @Override
-    public boolean onTouch(View v, MotionEvent event) {
-        return false;
     }
 
     /**
@@ -1278,7 +1289,32 @@ public class Camera2BasicFragment extends Fragment
         } catch (CameraAccessException e) {
             e.printStackTrace();
         }
-        Log.e("Zoom", "mZoom_level: " + mZoom_level );
+        Log.e("Zoom", "mZoom_level: " + mZoom_level);
+    }
+
+    private void setZoomLevel() {
+        if (mZoom_level == 0) {
+            zoom1.setBackground(getActivity().getResources().getDrawable(R.drawable.circle_press_bg));
+            zoom2.setBackground(getActivity().getResources().getDrawable(R.drawable.circle_bg));
+            zoom3.setBackground(getActivity().getResources().getDrawable(R.drawable.circle_bg));
+        } else if (mZoom_level == 2) {
+            zoom2.setBackground(getActivity().getResources().getDrawable(R.drawable.circle_press_bg));
+            zoom1.setBackground(getActivity().getResources().getDrawable(R.drawable.circle_bg));
+            zoom3.setBackground(getActivity().getResources().getDrawable(R.drawable.circle_bg));
+        } else {
+            zoom3.setBackground(getActivity().getResources().getDrawable(R.drawable.circle_press_bg));
+            zoom2.setBackground(getActivity().getResources().getDrawable(R.drawable.circle_bg));
+            zoom1.setBackground(getActivity().getResources().getDrawable(R.drawable.circle_bg));
+        }
+    }
+
+    private void zoom(float zoomLevel) throws CameraAccessException {
+        if (mZoom == null) initZoom();
+        mZoom_level = zoomLevel;
+        mZoom.setZoom(mPreviewRequestBuilder, mZoom_level);
+        if (mCaptureSession != null) {
+            mCaptureSession.setRepeatingRequest(mPreviewRequestBuilder.build(), mCaptureCallback, mBackgroundHandler);
+        }
     }
 
     private void zoomIn() throws CameraAccessException {
@@ -1287,22 +1323,29 @@ public class Camera2BasicFragment extends Fragment
             mZoom_level = MAX_ZOOM_LEVEL;
         } else {
             mZoom_level += 2;
+            if (mZoom == null) initZoom();
             mZoom.setZoom(mPreviewRequestBuilder, mZoom_level);
-            mCaptureSession.setRepeatingRequest(mPreviewRequestBuilder.build(), mCaptureCallback, mBackgroundHandler);
+            if (mCaptureSession != null) {
+                mCaptureSession.setRepeatingRequest(mPreviewRequestBuilder.build(), mCaptureCallback, mBackgroundHandler);
+            }
         }
-        Log.e("Zoom", "mZoom_level: " + mZoom_level + " " + "mZoom: "+ mZoom.getCropRegion());
+        //Log.e("Zoom", "mZoom_level: " + mZoom_level + " " + "mZoom: " + mZoom.getCropRegion());
     }
 
     private void zoomOut() throws CameraAccessException {
 
         if (mZoom_level <= 0) {
             mZoom_level = 0;
-        }else {
+        } else {
             mZoom_level -= 2;
+            if (mZoom == null) initZoom();
             mZoom.setZoom(mPreviewRequestBuilder, mZoom_level);
-            mCaptureSession.setRepeatingRequest(mPreviewRequestBuilder.build(), mCaptureCallback, mBackgroundHandler);
+            if (mCaptureSession != null) {
+                mCaptureSession.setRepeatingRequest(mPreviewRequestBuilder.build(), mCaptureCallback, mBackgroundHandler);
+            }
+
         }
-        Log.e("Zoom", "mZoom_level: " + mZoom_level + " " + "mZoom: "+ mZoom.getCropRegion());
+        //Log.e("Zoom", "mZoom_level: " + mZoom_level + " " + "mZoom: " + mZoom.getCropRegion());
     }
 
     public void setupScanner() {
@@ -1397,4 +1440,75 @@ public class Camera2BasicFragment extends Fragment
         Log.d(TAG, getClass().getName() + ".takeOrientation() mOrientation = " + mOrientation);
     }
 
+    public static int getScreenWidth() {
+        return Resources.getSystem().getDisplayMetrics().widthPixels;
+    }
+
+    public static int getScreenHeight() {
+        return Resources.getSystem().getDisplayMetrics().heightPixels;
+    }
+
+    public void handleFocus() {
+
+        // Get the pointer's current position
+        float x = getScreenWidth() / 2;
+        float y = getScreenHeight() / 2;
+
+        Rect touchRect = new Rect(
+                (int) (x - 300),
+                (int) (y - 200),
+                (int) (x + 300),
+                (int) (y + 200));
+
+
+        if (mCameraId == null) return;
+        Activity activity = getActivity();
+        CameraManager cm = (CameraManager) activity.getSystemService(Context.CAMERA_SERVICE);
+        CameraCharacteristics cc = null;
+        try {
+            cc = cm.getCameraCharacteristics(mCameraId);
+        } catch (CameraAccessException e) {
+            e.printStackTrace();
+        }
+
+
+        MeteringRectangle focusArea = new MeteringRectangle(touchRect, MeteringRectangle.METERING_WEIGHT_DONT_CARE);
+        mPreviewRequestBuilder.set(CaptureRequest.CONTROL_AF_TRIGGER, CameraMetadata.CONTROL_AF_TRIGGER_CANCEL);
+        try {
+            mCaptureSession.capture(mPreviewRequestBuilder.build(), mCaptureCallback,
+                    mBackgroundHandler);
+            // After this, the camera will go back to the normal state of preview.
+            mState = STATE_PREVIEW;
+        } catch (CameraAccessException e) {
+            // log
+        }
+
+        /* if (isMeteringAreaAESupported(cc)) {
+         *//*mPreviewRequestBuilder.set(CaptureRequest.CONTROL_AE_REGIONS,
+                new MeteringRectangle[]{focusArea});*//*
+    }
+    if (isMeteringAreaAFSupported(cc)) {
+        *//*mPreviewRequestBuilder
+                .set(CaptureRequest.CONTROL_AF_REGIONS, new MeteringRectangle[]{focusArea});
+        mPreviewRequestBuilder.set(CaptureRequest.CONTROL_AF_MODE,
+                CaptureRequest.CONTROL_AF_MODE_AUTO);*//*
+    }*/
+        mPreviewRequestBuilder.set(CaptureRequest.CONTROL_AE_REGIONS,
+                new MeteringRectangle[]{focusArea});
+        mPreviewRequestBuilder
+                .set(CaptureRequest.CONTROL_AF_REGIONS, new MeteringRectangle[]{focusArea});
+        mPreviewRequestBuilder.set(CaptureRequest.CONTROL_AF_MODE,
+                CaptureRequest.CONTROL_AF_MODE_CONTINUOUS_PICTURE);
+        mPreviewRequestBuilder.set(CaptureRequest.CONTROL_AF_TRIGGER,
+                CameraMetadata.CONTROL_AF_TRIGGER_START);
+        mPreviewRequestBuilder.set(CaptureRequest.CONTROL_AE_PRECAPTURE_TRIGGER,
+                CameraMetadata.CONTROL_AE_PRECAPTURE_TRIGGER_START);
+        try {
+            mCaptureSession.setRepeatingRequest(mPreviewRequestBuilder.build(), mCaptureCallback,
+                    mBackgroundHandler);
+            /* mManualFocusEngaged = true;*/
+        } catch (CameraAccessException e) {
+            // error handling
+        }
+    }
 }
