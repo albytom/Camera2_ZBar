@@ -112,6 +112,7 @@ public class Camera2BasicFragment extends Fragment
     private RectF mClipRectRatio;
     String mResult = null;
     int mCount = 0;
+    private static int imgCount = 0;
 
     static {
         ORIENTATIONS.append(Surface.ROTATION_0, 90);
@@ -170,8 +171,10 @@ public class Camera2BasicFragment extends Fragment
         public void onSurfaceTextureAvailable(SurfaceTexture texture, int width, int height) {
             openCamera(width, height);
             setupScanner();
-            initZoom();
-            setZoomLevel();
+            if (null != mCameraId) {
+                initZoom();
+                setZoomLevel();
+            }
         }
 
         @Override
@@ -1137,7 +1140,8 @@ public class Camera2BasicFragment extends Fragment
                     true
             );
 
-            final File mFile1 = new File(getExternalStorageDirectory() + "/pic11.jpg");
+            final File mFile1 = new File(getExternalStorageDirectory() + "/pic" + imgCount + ".jpg");
+            imgCount++;
 
             try (FileOutputStream out = new FileOutputStream(mFile1)) {
                 dstBmp.compress(Bitmap.CompressFormat.PNG, 100, out); // bmp is your Bitmap instance
@@ -1282,6 +1286,7 @@ public class Camera2BasicFragment extends Fragment
 
     private void initZoom() {
         try {
+            //if (null == mCameraId) return;
             CameraManager manager = (CameraManager) getActivity().getSystemService(Context.CAMERA_SERVICE);
             CameraCharacteristics characteristics = manager.getCameraCharacteristics(mCameraId);
             MAX_ZOOM_LEVEL = characteristics.get(CameraCharacteristics.SCALER_AVAILABLE_MAX_DIGITAL_ZOOM);

@@ -2,12 +2,11 @@ buildscript {
     repositories {
         jcenter()
         google()
-        maven { url "https://chaquo.com/maven" }
+        mavenCentral()
     }
 
     dependencies {
         classpath 'com.android.tools.build:gradle:3.6.1'
-        classpath "com.chaquo.python:gradle:6.3.0"
     }
 }
 
@@ -39,7 +38,7 @@ List<String> dirs = [
 android {
     compileSdkVersion 28
 
-    buildToolsVersion "27.0.3"
+    buildToolsVersion "28.0.3"
 
     defaultConfig {
         minSdkVersion 21
