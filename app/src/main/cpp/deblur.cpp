@@ -14,15 +14,15 @@ using namespace std;
 JNIEXPORT void JNICALL Java_com_example_android_camera2basic_CvUtil_processMat
   (JNIEnv *env, jclass obj, jlong addrRgba){
 
-    Mat* pMatRgb = (Mat*)addrRgba;
+    cv::Mat* pMatRgb = (cv::Mat*)addrRgba;
 
   int kernel_size = 3;
-      Mat sharpen,dst,gray,grad_x, grad_y,gradient,blurred,thresh,closed,M;
+    cv::Mat sharpen,dst,gray,grad_x, grad_y,gradient,blurred,thresh,closed,M;
       vector<vector<Point> > cnts;
 
       //Mat image = imread("pic4.jpg");
 
-    Mat image = *pMatRgb;
+    cv::Mat image = *pMatRgb;
 
       if (image.empty())
       {
@@ -31,7 +31,7 @@ JNIEXPORT void JNICALL Java_com_example_android_camera2basic_CvUtil_processMat
           //return -1;
       }
 
-      Mat sharpen_kernel = Mat::ones( kernel_size, kernel_size, CV_32F )*-1;
+    cv::Mat sharpen_kernel = cv::Mat::ones( kernel_size, kernel_size, CV_32F )*-1;
       sharpen_kernel.at<float>(1,1)=9;
       filter2D(image, sharpen, -1 , sharpen_kernel );
 

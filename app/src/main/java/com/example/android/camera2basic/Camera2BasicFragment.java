@@ -290,7 +290,8 @@ public class Camera2BasicFragment extends Fragment
         @Override
         public void onImageAvailable(ImageReader reader) {
             //mBackgroundHandler.post(new ImageSaver(reader.acquireNextImage(), mFile));
-            displayImageBarcode(reader.acquireNextImage());
+            //displayImageBarcode(reader.acquireNextImage());
+            displayBarcodeOld(reader.acquireNextImage());
             //showData(reader.acquireNextImage());
         }
 
@@ -500,7 +501,7 @@ public class Camera2BasicFragment extends Fragment
     @Override
     public void onActivityCreated(Bundle savedInstanceState) {
         super.onActivityCreated(savedInstanceState);
-        mFile = new File(getExternalStorageDirectory() + "/pic31.jpg");
+        //mFile = new File(getExternalStorageDirectory() + "/pic31.jpg");
     }
 
     @Override
@@ -933,8 +934,6 @@ public class Camera2BasicFragment extends Fragment
                 public void onCaptureCompleted(@NonNull CameraCaptureSession session,
                                                @NonNull CaptureRequest request,
                                                @NonNull TotalCaptureResult result) {
-                    // showToast("Saved: " + mFile);
-                    Log.d(TAG, mFile.toString());
                     unlockFocus();
                 }
             };
@@ -1044,6 +1043,40 @@ public class Camera2BasicFragment extends Fragment
                     CaptureRequest.CONTROL_AE_MODE_ON_AUTO_FLASH);
         }
     }
+    public void displayBarcodeOld(Image pImage) {
+        ByteBuffer buffer = pImage.getPlanes()[0].getBuffer();
+
+        byte[] bytes = new byte[buffer.capacity()];
+        buffer.get(bytes);
+
+        Matrix matrix = new Matrix();
+        // matrix.postRotate(90); // To rotate the image before saving.
+
+        Bitmap srcBmp = BitmapFactory.decodeByteArray(bytes, 0, bytes.length, null);
+        mBitmap = Bitmap.createBitmap(
+                srcBmp,
+                (srcBmp.getWidth() / 2) - 500,
+                (srcBmp.getHeight() / 2) -250,
+                1000,
+                500, matrix,
+                true
+        );
+        Bitmap srcBitmap = deBlur(mBitmap);
+        if (srcBitmap != null) {
+            mWidth = srcBitmap.getWidth();
+            mHeight = srcBitmap.getHeight();
+
+            mPixels = getBitmapPixels(srcBitmap);
+            mYUVFrameData = getYUVFrameData(mPixels, mWidth, mHeight);
+            //takeOrientation(getContext());
+            if (mClipRectRatio == null) {
+                mClipRectRatio = new RectF();
+            }
+            mClipRectRatio.set(0, 0, 1, 1);
+            mZBarDecoder.decodeForResult(srcBitmap, mClipRectRatio, 999);
+        }
+        pImage.close();
+    }
 
     public void displayImageBarcode(Image pImage) {
         ByteBuffer buffer = pImage.getPlanes()[0].getBuffer();
@@ -1081,22 +1114,25 @@ public class Camera2BasicFragment extends Fragment
     }
 
     private Bitmap deBlur(Bitmap sourceBmp) {
-        Mat srcMat = new Mat(/*sourceBmp.getHeight(), sourceBmp.getWidth(), CvType.CV_8U, new Scalar(4)*/);
+        /*Mat srcMat = new Mat(*//*sourceBmp.getHeight(), sourceBmp.getWidth(), CvType.CV_8U, new Scalar(4)*//*);*/
+        Log.e(TAG, "in deBlur");
+        Mat srcMat = new Mat();
         Bitmap bmp32 = sourceBmp.copy(Bitmap.Config.ARGB_8888, true);
         Utils.bitmapToMat(bmp32, srcMat);
-
+        //Log.e(TAG, "deBlur after bitmapToMat");
         CvUtil.processMat(srcMat);
-
+        //Log.e(TAG, "deBlur after processMat");
         Bitmap bmp = null;
-        Mat destMat = new Mat(sourceBmp.getHeight(), sourceBmp.getWidth(), CvType.CV_8U, new Scalar(4));
+        Mat destMat = new Mat(sourceBmp.getHeight(), sourceBmp.getWidth(), CvType.CV_8U/*, new Scalar(3)*/);
         try {
             //Imgproc.cvtColor(seedsImage, tmp, Imgproc.COLOR_RGB2BGRA);
-            Imgproc.cvtColor(srcMat, destMat, Imgproc.COLOR_GRAY2RGBA, 4);
+            //Imgproc.cvtColor(srcMat, destMat, Imgproc.COLOR_GRAY2RGB, 3);
             bmp = Bitmap.createBitmap(destMat.cols(), destMat.rows(), Bitmap.Config.ARGB_8888);
             Utils.matToBitmap(destMat, bmp);
+            //Log.e(TAG, "deBlur after matToBitmap");
             return bmp;
         } catch (CvException e) {
-            Log.d("Exception", e.getMessage());
+            Log.d("Exception deBlur", e.getMessage());
         }
         return null;
     }
