@@ -1044,6 +1044,7 @@ public class Camera2BasicFragment extends Fragment
         }
     }
     public void displayBarcodeOld(Image pImage) {
+        Log.e(TAG, "deBlur displayBarcodeOld in");
         ByteBuffer buffer = pImage.getPlanes()[0].getBuffer();
 
         byte[] bytes = new byte[buffer.capacity()];
@@ -1061,21 +1062,22 @@ public class Camera2BasicFragment extends Fragment
                 500, matrix,
                 true
         );
-        Bitmap srcBitmap = deBlur(mBitmap);
-        if (srcBitmap != null) {
-            mWidth = srcBitmap.getWidth();
-            mHeight = srcBitmap.getHeight();
+        Bitmap dstBitmap = deBlur(mBitmap);
+        if (dstBitmap != null) {
+            mWidth = dstBitmap.getWidth();
+            mHeight = dstBitmap.getHeight();
 
-            mPixels = getBitmapPixels(srcBitmap);
+            mPixels = getBitmapPixels(dstBitmap);
             mYUVFrameData = getYUVFrameData(mPixels, mWidth, mHeight);
             //takeOrientation(getContext());
             if (mClipRectRatio == null) {
                 mClipRectRatio = new RectF();
             }
             mClipRectRatio.set(0, 0, 1, 1);
-            mZBarDecoder.decodeForResult(srcBitmap, mClipRectRatio, 999);
+            mZBarDecoder.decodeForResult(dstBitmap, mClipRectRatio, 999);
         }
         pImage.close();
+        Log.e(TAG, "deBlur displayBarcodeOld end");
     }
 
     public void displayImageBarcode(Image pImage) {
@@ -1119,17 +1121,22 @@ public class Camera2BasicFragment extends Fragment
         Mat srcMat = new Mat();
         Bitmap bmp32 = sourceBmp.copy(Bitmap.Config.ARGB_8888, true);
         Utils.bitmapToMat(bmp32, srcMat);
-        //Log.e(TAG, "deBlur after bitmapToMat");
-        CvUtil.processMat(srcMat);
-        //Log.e(TAG, "deBlur after processMat");
+        Log.e(TAG, "deBlur after bitmapToMat");
+        Mat destMat = CvUtil.processMat(srcMat);
+        /*try {
+            Thread.sleep(10000);
+        } catch (InterruptedException e) {
+            e.printStackTrace();
+        }*/
+        Log.e(TAG, "deBlur after processMat");
         Bitmap bmp = null;
-        Mat destMat = new Mat(sourceBmp.getHeight(), sourceBmp.getWidth(), CvType.CV_8U/*, new Scalar(3)*/);
+        //Mat destMat = new Mat(sourceBmp.getHeight(), sourceBmp.getWidth(), CvType.CV_8U/*, new Scalar(3)*/);
         try {
             //Imgproc.cvtColor(seedsImage, tmp, Imgproc.COLOR_RGB2BGRA);
             //Imgproc.cvtColor(srcMat, destMat, Imgproc.COLOR_GRAY2RGB, 3);
             bmp = Bitmap.createBitmap(destMat.cols(), destMat.rows(), Bitmap.Config.ARGB_8888);
             Utils.matToBitmap(destMat, bmp);
-            //Log.e(TAG, "deBlur after matToBitmap");
+            Log.e(TAG, "deBlur after matToBitmap");
             return bmp;
         } catch (CvException e) {
             Log.d("Exception deBlur", e.getMessage());
@@ -1155,7 +1162,7 @@ public class Camera2BasicFragment extends Fragment
             mResult = result;
             showDialog_OnBarcodeFound(result, type);
         }
-        Log.d(TAG, getClass().getName() + ".decodeComplete() -> " + mResult);
+        Log.d(TAG, getClass().getName() + "deBlur decodeComplete() -> " + mResult);
     }
 
     private int[] getBitmapPixels(Bitmap bitmap) {
