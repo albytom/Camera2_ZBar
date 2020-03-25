@@ -107,7 +107,6 @@ public class Camera2BasicFragment extends Fragment
     private static final String FRAGMENT_DIALOG = "dialog";
     public float finger_spacing = 0;
     private float mZoom_level = 0;
-    private float MAX_ZOOM_LEVEL = 10;
     private TextView zoom1, zoom2, zoom3;
 
     private Bitmap mBitmap;
@@ -289,20 +288,11 @@ public class Camera2BasicFragment extends Fragment
 
         @Override
         public void onImageAvailable(ImageReader reader) {
-            //mBackgroundHandler.post(new ImageSaver(reader.acquireNextImage(), mFile));
-            //displayImageBarcode(reader.acquireNextImage());
             displayBarcodeOld(reader.acquireNextImage());
-            //showData(reader.acquireNextImage());
         }
 
     };
     private Zoom mZoom;
-
-    /**
-     * Get value of barcode and display image and barcode value in dialog
-     */
-    private void showData(Image pImage) {
-    }
 
     /**
      * {@link CaptureRequest.Builder} for the camera preview
@@ -336,10 +326,6 @@ public class Camera2BasicFragment extends Fragment
      */
     private int mSensorOrientation;
 
-    /**
-     * Device Orientation 0 Up 1 Left 2 Down 3 Right
-     */
-    private int mOrientation;
 
     /**
      * A {@link CameraCaptureSession.CaptureCallback} that handles events related to JPEG capture.
@@ -488,7 +474,6 @@ public class Camera2BasicFragment extends Fragment
     @Override
     public void onViewCreated(final View view, Bundle savedInstanceState) {
         view.findViewById(R.id.scan_btn).setOnClickListener(this);
-        //view.findViewById(R.id.info).setOnClickListener(this);
         zoom1 = view.findViewById(R.id.zoom_l1);
         zoom1.setOnClickListener(this);
         zoom2 = view.findViewById(R.id.zoom_l2);
@@ -864,23 +849,6 @@ public class Camera2BasicFragment extends Fragment
         }
     }
 
-    /**
-     * Lock the focus as the first step for a still image capture.
-     */
-    private void lockFocusForScan() {
-        try {
-            // This is how to tell the camera to lock focus.
-            mPreviewRequestBuilder.set(CaptureRequest.CONTROL_AF_TRIGGER,
-                    CameraMetadata.CONTROL_AF_TRIGGER_START);
-            //mPreviewRequestBuilder.set(CaptureRequest.SCALER_CROP_REGION, mZoom.getCropRegion());
-            // Tell #mCaptureCallback to wait for the lock.
-            mState = STATE_WAITING_LOCK;
-            mCaptureSession.setRepeatingRequest(mPreviewRequestBuilder.build(), mCaptureCallback,
-                    mBackgroundHandler);
-        } catch (CameraAccessException e) {
-            e.printStackTrace();
-        }
-    }
 
     /**
      * Run the precapture sequence for capturing a still image. This method should be called when
@@ -1022,18 +990,6 @@ public class Camera2BasicFragment extends Fragment
                     pE.printStackTrace();
                 }
                 break;
-            /*case R.id.info:
-                Activity activity = getActivity();
-                if (null != activity) {
-                    new AlertDialog.Builder(activity)
-                            .setMessage(R.string.intro_message)
-                            .setPositiveButton(android.R.string.ok, null)
-                            .show();
-                }
-
-                break;*/
-
-
         }
     }
 
@@ -1043,17 +999,17 @@ public class Camera2BasicFragment extends Fragment
                     CaptureRequest.CONTROL_AE_MODE_ON_AUTO_FLASH);
         }
     }
+    /**Process the image to crop the barcode and send for decoding*/
     public void displayBarcodeOld(Image pImage) {
-        Log.e(TAG, "deBlur displayBarcodeOld in");
         ByteBuffer buffer = pImage.getPlanes()[0].getBuffer();
 
         byte[] bytes = new byte[buffer.capacity()];
         buffer.get(bytes);
 
         Matrix matrix = new Matrix();
-        // matrix.postRotate(90); // To rotate the image before saving.
 
         Bitmap srcBmp = BitmapFactory.decodeByteArray(bytes, 0, bytes.length, null);
+        /**crop the image in the centre*/
         mBitmap = Bitmap.createBitmap(
                 srcBmp,
                 (srcBmp.getWidth() / 2) - 500,
@@ -1062,6 +1018,7 @@ public class Camera2BasicFragment extends Fragment
                 500, matrix,
                 true
         );
+        /**Calling deblur method to clean cropped image*/
         Bitmap dstBitmap = deBlur(mBitmap);
         if (dstBitmap != null) {
             mWidth = dstBitmap.getWidth();
@@ -1069,7 +1026,6 @@ public class Camera2BasicFragment extends Fragment
 
             mPixels = getBitmapPixels(dstBitmap);
             mYUVFrameData = getYUVFrameData(mPixels, mWidth, mHeight);
-            //takeOrientation(getContext());
             if (mClipRectRatio == null) {
                 mClipRectRatio = new RectF();
             }
@@ -1077,63 +1033,20 @@ public class Camera2BasicFragment extends Fragment
             mZBarDecoder.decodeForResult(dstBitmap, mClipRectRatio, 999);
         }
         pImage.close();
-        Log.e(TAG, "deBlur displayBarcodeOld end");
     }
 
-    public void displayImageBarcode(Image pImage) {
-        ByteBuffer buffer = pImage.getPlanes()[0].getBuffer();
-
-        byte[] bytes = new byte[buffer.capacity()];
-        buffer.get(bytes);
-
-        Matrix matrix = new Matrix();
-        // matrix.postRotate(90); // To rotate the image before saving.
-
-        Bitmap srcBmp = BitmapFactory.decodeByteArray(bytes, 0, bytes.length, null);
-        mBitmap = Bitmap.createBitmap(
-                srcBmp,
-                srcBmp.getWidth() / 3,
-                srcBmp.getHeight() / 3,
-                srcBmp.getWidth() / 3,
-                srcBmp.getHeight() / 3, matrix,
-                true
-        );
-        Bitmap srcBitmap = deBlur(mBitmap);
-        if (srcBitmap != null) {
-            mWidth = srcBitmap.getWidth();
-            mHeight = srcBitmap.getHeight();
-
-            mPixels = getBitmapPixels(srcBitmap);
-            mYUVFrameData = getYUVFrameData(mPixels, mWidth, mHeight);
-            //takeOrientation(getContext());
-            if (mClipRectRatio == null) {
-                mClipRectRatio = new RectF();
-            }
-            mClipRectRatio.set(0, 0, 1, 1);
-            mZBarDecoder.decodeForResult(srcBitmap, mClipRectRatio, 999);
-        }
-        pImage.close();
-    }
-
+    /**Deblur and crop image to isolate barcode image*/
     private Bitmap deBlur(Bitmap sourceBmp) {
-        /*Mat srcMat = new Mat(*//*sourceBmp.getHeight(), sourceBmp.getWidth(), CvType.CV_8U, new Scalar(4)*//*);*/
-        Log.e(TAG, "in deBlur");
+
         Mat srcMat = new Mat();
         Bitmap bmp32 = sourceBmp.copy(Bitmap.Config.ARGB_8888, true);
         Utils.bitmapToMat(bmp32, srcMat);
-        Log.e(TAG, "deBlur after bitmapToMat");
+
+        /**Calling Native method to process image. Mat returned to crop image*/
         Mat destMat = CvUtil.processMat(srcMat);
-        /*try {
-            Thread.sleep(10000);
-        } catch (InterruptedException e) {
-            e.printStackTrace();
-        }*/
-        Log.e(TAG, "deBlur after processMat");
+
         Bitmap bmp = null;
-        //Mat destMat = new Mat(sourceBmp.getHeight(), sourceBmp.getWidth(), CvType.CV_8U/*, new Scalar(3)*/);
         try {
-            //Imgproc.cvtColor(seedsImage, tmp, Imgproc.COLOR_RGB2BGRA);
-            //Imgproc.cvtColor(srcMat, destMat, Imgproc.COLOR_GRAY2RGB, 3);
             bmp = Bitmap.createBitmap(destMat.cols(), destMat.rows(), Bitmap.Config.ARGB_8888);
             Utils.matToBitmap(destMat, bmp);
             Log.e(TAG, "deBlur after matToBitmap");
@@ -1144,7 +1057,7 @@ public class Camera2BasicFragment extends Fragment
         return null;
     }
 
-    @Override
+    @Override /**Callback after decoding barcode*/
     public void decodeComplete(String result, int type, int quality, int requestCode) {
         if (result == null) return;
         if (result.equals(mResult)) {
@@ -1173,80 +1086,6 @@ public class Camera2BasicFragment extends Fragment
         bitmap.getPixels(pixels, 0, width, 0, 0, width, height);
         //bitmap.recycle();
         return pixels;
-    }
-
-    /**
-     * Saves a JPEG {@link Image} into the specified {@link File}.
-     */
-    private static class ImageSaver implements Runnable {
-
-        /**
-         * The JPEG image
-         */
-        private final Image mImage;
-        /**
-         * The file we save the image into.
-         */
-        private final File mFile;
-
-        ImageSaver(Image image, File file) {
-            mImage = image;
-            mFile = file;
-        }
-
-        @Override
-        public void run() {
-            ByteBuffer buffer = mImage.getPlanes()[0].getBuffer();
-
-            byte[] bytes = new byte[buffer.capacity()];
-            buffer.get(bytes);
-
-            Matrix matrix = new Matrix();
-            // matrix.postRotate(90); // To rotate the image before saving.
-
-            Bitmap srcBmp = BitmapFactory.decodeByteArray(bytes, 0, bytes.length, null);
-            Bitmap dstBmp = Bitmap.createBitmap(
-                    srcBmp,
-                    srcBmp.getWidth() / 2 - 500,
-                    srcBmp.getHeight() / 2 - 250,
-                    1000,
-                    500, matrix,
-                    true
-            );
-
-            final File mFile1 = new File(getExternalStorageDirectory() + "/pic" + imgCount + ".jpg");
-            imgCount++;
-
-            try (FileOutputStream out = new FileOutputStream(mFile1)) {
-                dstBmp.compress(Bitmap.CompressFormat.PNG, 100, out); // bmp is your Bitmap instance
-                // PNG is a lossless format, the compression factor (100) is ignored
-            } catch (IOException e) {
-                e.printStackTrace();
-            }
-
-
-            byte[] bytes1 = new byte[buffer.remaining()];
-            buffer.get(bytes1);
-            FileOutputStream output = null;
-            FileOutputStream output1 = null;
-            try {
-                output = new FileOutputStream(mFile);
-                output.write(bytes);
-
-            } catch (IOException e) {
-                e.printStackTrace();
-            } finally {
-                mImage.close();
-                if (null != output) {
-                    try {
-                        output.close();
-                    } catch (IOException e) {
-                        e.printStackTrace();
-                    }
-                }
-            }
-        }
-
     }
 
     /**
@@ -1295,37 +1134,6 @@ public class Camera2BasicFragment extends Fragment
 
     }
 
-    private void showImage(final Bitmap pBitmap/*, final String result*/) {
-        getActivity().runOnUiThread(new Runnable() {
-            @Override
-            public void run() {
-                mBarcodeDialog = new Dialog(getActivity());
-                mBarcodeDialog.setContentView(R.layout.image_dialog);
-                ImageView vImageView = mBarcodeDialog.findViewById(R.id.image_view);
-                /*TextView textView = mBarcodeDialog.findViewById(R.id.barcode_tv);
-                textView.setText(result);*/
-                vImageView.setImageBitmap(pBitmap);
-                Button nextBtn = mBarcodeDialog.findViewById(R.id.ok_btn);
-                Button rescanBtn = mBarcodeDialog.findViewById(R.id.scan_btn);
-                rescanBtn.setOnClickListener(new View.OnClickListener() {
-                    @Override
-                    public void onClick(View v) {
-                        mBarcodeDialog.dismiss();
-                        Toast.makeText(getActivity(), "Rescaning!", Toast.LENGTH_SHORT).show();
-                    }
-                });
-                nextBtn.setOnClickListener(new View.OnClickListener() {
-                    @Override
-                    public void onClick(View v) {
-                        mBarcodeDialog.dismiss();
-                        Toast.makeText(getActivity(), "This is where you call your API with data from Barcode!", Toast.LENGTH_SHORT).show();
-                    }
-                });
-                mBarcodeDialog.show();
-            }
-        });
-    }
-
     /**
      * Shows OK/Cancel confirmation dialog about camera permission.
      */
@@ -1363,7 +1171,6 @@ public class Camera2BasicFragment extends Fragment
             //if (null == mCameraId) return;
             CameraManager manager = (CameraManager) getActivity().getSystemService(Context.CAMERA_SERVICE);
             CameraCharacteristics characteristics = manager.getCameraCharacteristics(mCameraId);
-            MAX_ZOOM_LEVEL = characteristics.get(CameraCharacteristics.SCALER_AVAILABLE_MAX_DIGITAL_ZOOM);
             mZoom = new Zoom(characteristics);
         } catch (CameraAccessException e) {
             e.printStackTrace();
@@ -1371,6 +1178,7 @@ public class Camera2BasicFragment extends Fragment
         Log.e("Zoom", "mZoom_level: " + mZoom_level);
     }
 
+    /**updating zoom level*/
     private void setZoomLevel() {
         if (mZoom_level == 0) {
             zoom1.setBackground(getActivity().getResources().getDrawable(R.drawable.circle_press_bg));
@@ -1387,6 +1195,7 @@ public class Camera2BasicFragment extends Fragment
         }
     }
 
+    /**Setting zoom level*/
     private void zoom(float zoomLevel) throws CameraAccessException {
         if (mZoom == null) initZoom();
         mZoom_level = zoomLevel;
@@ -1396,37 +1205,7 @@ public class Camera2BasicFragment extends Fragment
         }
     }
 
-    private void zoomIn() throws CameraAccessException {
-
-        if (mZoom_level >= MAX_ZOOM_LEVEL) {
-            mZoom_level = MAX_ZOOM_LEVEL;
-        } else {
-            mZoom_level += 2;
-            if (mZoom == null) initZoom();
-            mZoom.setZoom(mPreviewRequestBuilder, mZoom_level);
-            if (mCaptureSession != null) {
-                mCaptureSession.setRepeatingRequest(mPreviewRequestBuilder.build(), mCaptureCallback, mBackgroundHandler);
-            }
-        }
-        //Log.e("Zoom", "mZoom_level: " + mZoom_level + " " + "mZoom: " + mZoom.getCropRegion());
-    }
-
-    private void zoomOut() throws CameraAccessException {
-
-        if (mZoom_level <= 0) {
-            mZoom_level = 0;
-        } else {
-            mZoom_level -= 2;
-            if (mZoom == null) initZoom();
-            mZoom.setZoom(mPreviewRequestBuilder, mZoom_level);
-            if (mCaptureSession != null) {
-                mCaptureSession.setRepeatingRequest(mPreviewRequestBuilder.build(), mCaptureCallback, mBackgroundHandler);
-            }
-
-        }
-        //Log.e("Zoom", "mZoom_level: " + mZoom_level + " " + "mZoom: " + mZoom.getCropRegion());
-    }
-
+    /**Setup scanner config*/
     public void setupScanner() {
         mZBarDecoder = new ZBarDecoder(this, null);
         mScanner = new ImageScanner();
@@ -1439,6 +1218,7 @@ public class Camera2BasicFragment extends Fragment
         }
     }
 
+    /**Get Barcode formats*/
     public Collection<BarcodeFormat> getFormats() {
         if (mFormats == null) {
             return BarcodeFormat.ALL_FORMATS;
@@ -1446,6 +1226,7 @@ public class Camera2BasicFragment extends Fragment
         return mFormats;
     }
 
+    /**Get YUV data from Frame*/
     private byte[] getYUVFrameData(int[] pixels, int width, int height) {
         if (pixels == null) return null;
 
@@ -1475,6 +1256,7 @@ public class Camera2BasicFragment extends Fragment
         return frameData;
     }
 
+    /**Dialog to show barcode and type */
     private void showDialog_OnBarcodeFound(final String barcodeData, final int type) {
         getActivity().runOnUiThread(new Runnable() {
             @Override
@@ -1511,25 +1293,19 @@ public class Camera2BasicFragment extends Fragment
         });
     }
 
-    private void takeOrientation(Context context) {
-        WindowManager windowManager = (WindowManager) context.getSystemService(Context.WINDOW_SERVICE);
-        if (windowManager != null) {
-            mOrientation = windowManager.getDefaultDisplay().getRotation();
-        }
-        Log.d(TAG, getClass().getName() + ".takeOrientation() mOrientation = " + mOrientation);
-    }
-
+    /**Get width of screen*/
     public static int getScreenWidth() {
         return Resources.getSystem().getDisplayMetrics().widthPixels;
     }
 
+    /**Get height of screen*/
     public static int getScreenHeight() {
         return Resources.getSystem().getDisplayMetrics().heightPixels;
     }
 
+    /**Focus camera on the centre of the screen*/
     public void handleFocus() {
 
-        // Get the pointer's current position
         float x = getScreenWidth() / 2;
         float y = getScreenHeight() / 2;
 
@@ -1538,7 +1314,6 @@ public class Camera2BasicFragment extends Fragment
                 (int) (y - 200),
                 (int) (x + 300),
                 (int) (y + 200));
-
 
         if (mCameraId == null) return;
         Activity activity = getActivity();
@@ -1550,7 +1325,6 @@ public class Camera2BasicFragment extends Fragment
             e.printStackTrace();
         }
 
-
         MeteringRectangle focusArea = new MeteringRectangle(touchRect, MeteringRectangle.METERING_WEIGHT_DONT_CARE);
         mPreviewRequestBuilder.set(CaptureRequest.CONTROL_AF_TRIGGER, CameraMetadata.CONTROL_AF_TRIGGER_CANCEL);
         try {
@@ -1559,19 +1333,9 @@ public class Camera2BasicFragment extends Fragment
             // After this, the camera will go back to the normal state of preview.
             mState = STATE_PREVIEW;
         } catch (CameraAccessException e) {
-            // log
+            e.printStackTrace();
         }
 
-        /* if (isMeteringAreaAESupported(cc)) {
-         *//*mPreviewRequestBuilder.set(CaptureRequest.CONTROL_AE_REGIONS,
-                new MeteringRectangle[]{focusArea});*//*
-    }
-    if (isMeteringAreaAFSupported(cc)) {
-        *//*mPreviewRequestBuilder
-                .set(CaptureRequest.CONTROL_AF_REGIONS, new MeteringRectangle[]{focusArea});
-        mPreviewRequestBuilder.set(CaptureRequest.CONTROL_AF_MODE,
-                CaptureRequest.CONTROL_AF_MODE_AUTO);*//*
-    }*/
         mPreviewRequestBuilder.set(CaptureRequest.CONTROL_AE_REGIONS,
                 new MeteringRectangle[]{focusArea});
         mPreviewRequestBuilder
@@ -1585,9 +1349,8 @@ public class Camera2BasicFragment extends Fragment
         try {
             mCaptureSession.setRepeatingRequest(mPreviewRequestBuilder.build(), mCaptureCallback,
                     mBackgroundHandler);
-            /* mManualFocusEngaged = true;*/
         } catch (CameraAccessException e) {
-            // error handling
+            e.printStackTrace();
         }
     }
 }

@@ -46,7 +46,7 @@ JNIEXPORT jintArray JNICALL Java_com_example_android_camera2basic_CvUtil_process
     sharpen_kernel.at<float>(1, 1) = 9;
     filter2D(image, sharpen, -1, sharpen_kernel);
 
-    __android_log_print(ANDROID_LOG_ERROR, "TRACKERS", "%s", "deblur after filtered");
+    //__android_log_print(ANDROID_LOG_ERROR, "TRACKERS", "%s", "deblur after filtered");
 
 
     cv::fastNlMeansDenoisingColored(sharpen, dst, 7, 21);
@@ -117,10 +117,10 @@ JNIEXPORT jintArray JNICALL Java_com_example_android_camera2basic_CvUtil_process
     contour[1] = boundRect[idx].br();
 
 
-    __android_log_print(ANDROID_LOG_ERROR, "TRACKERS", "%s", "deblur before myROI");
+    //__android_log_print(ANDROID_LOG_ERROR, "TRACKERS", "%s", "deblur before myROI");
     cv::Rect myROI(boundRect[idx].tl(), boundRect[idx].br());
     //cv::Mat croppedImage = image_out(myROI);
-    __android_log_print(ANDROID_LOG_ERROR, "TRACKERS", "%s", "deblur after myROI");
+    //__android_log_print(ANDROID_LOG_ERROR, "TRACKERS", "%s", "deblur after myROI");
     image = image_out(myROI);
     //image = image_out;
 
@@ -138,7 +138,7 @@ JNIEXPORT jintArray JNICALL Java_com_example_android_camera2basic_CvUtil_process
     env->SetIntArrayRegion(result, 0, 4, fill);
 
 
-    __android_log_print(ANDROID_LOG_ERROR, "TRACKERS", "%s", "deblur completed");
+    //__android_log_print(ANDROID_LOG_ERROR, "TRACKERS", "%s", "deblur completed");
     return result;
 }
 }
