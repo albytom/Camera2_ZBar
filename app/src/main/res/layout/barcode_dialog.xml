@@ -8,6 +8,7 @@
     android:layout_height="wrap_content"
     android:keepScreenOn="true"
     tools:ignore="MissingDefaultResource">
+
     <LinearLayout
         android:layout_width="wrap_content"
         android:layout_height="wrap_content"
@@ -46,13 +47,30 @@
                 android:layout_weight="1"
                 android:text="Rescan"/>
             <Button
-                android:id="@+id/ok_btn"
+                android:id="@+id/nxt_btn"
                 android:layout_width="wrap_content"
                 android:layout_height="wrap_content"
                 android:layout_weight="1"
                 android:text="Next"/>
+            <Button
+                android:id="@+id/ok_btn"
+                android:layout_width="wrap_content"
+                android:layout_height="wrap_content"
+                android:layout_weight="1"
+                android:text="OK"/>
         </LinearLayout>
     </LinearLayout>
-
+    <TextView
+        android:id="@+id/count_tv"
+        android:layout_width="40dp"
+        android:layout_height="40dp"
+        android:gravity="center"
+        android:background="@drawable/circle_index_bg"
+        android:layout_alignParentEnd="true"
+        android:layout_alignParentTop="true"
+        android:textColor="@color/icons"
+        android:text="1/1"
+        android:layout_margin="10dp"
+        android:singleLine="true"/>
 
 </RelativeLayout>

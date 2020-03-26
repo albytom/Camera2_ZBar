@@ -50,6 +50,7 @@ import android.os.Bundle;
 import android.os.Handler;
 import android.os.HandlerThread;
 import android.support.annotation.NonNull;
+import android.support.annotation.Nullable;
 import android.support.v4.app.ActivityCompat;
 import android.support.v4.app.DialogFragment;
 import android.support.v4.app.Fragment;
@@ -88,7 +89,9 @@ import java.util.Arrays;
 import java.util.Collection;
 import java.util.Collections;
 import java.util.Comparator;
+import java.util.Iterator;
 import java.util.List;
+import java.util.ListIterator;
 import java.util.concurrent.Semaphore;
 import java.util.concurrent.TimeUnit;
 
@@ -99,6 +102,7 @@ public class Camera2BasicFragment extends Fragment
     private Dialog mBarcodeDialog;
     private ImageScanner mScanner;
     private List<BarcodeFormat> mFormats;
+    private ArrayList<ZbarData> mZbarDataList;
     /**
      * Conversion from screen rotation to JPEG orientation.
      */
@@ -180,6 +184,7 @@ public class Camera2BasicFragment extends Fragment
             if (null != mCameraId) {
                 initZoom();
                 setZoomLevel();
+                mZbarDataList = new ArrayList<ZbarData>();
             }
         }
 
@@ -288,7 +293,8 @@ public class Camera2BasicFragment extends Fragment
 
         @Override
         public void onImageAvailable(ImageReader reader) {
-            displayBarcodeOld(reader.acquireNextImage());
+            //displayBarcodeOld(reader.acquireNextImage());
+            printBarcodeToConsole(reader.acquireNextImage());
         }
 
     };
@@ -394,6 +400,10 @@ public class Camera2BasicFragment extends Fragment
         }
 
     };
+    private TextView titleTV;
+    private TextView valueTV;
+    private int index;
+    private TextView indexTV;
 
     /**
      * Shows a {@link Toast} on the UI thread.
@@ -1035,6 +1045,42 @@ public class Camera2BasicFragment extends Fragment
         pImage.close();
     }
 
+    /**Process the image to decode*/
+    private void printBarcodeToConsole(Image pImage){
+        ByteBuffer buffer = pImage.getPlanes()[0].getBuffer();
+
+        byte[] bytes = new byte[buffer.capacity()];
+        buffer.get(bytes);
+
+        Matrix matrix = new Matrix();
+
+        Bitmap srcBmp = BitmapFactory.decodeByteArray(bytes, 0, bytes.length, null);
+        /**crop the image in the centre*/
+        mBitmap = Bitmap.createBitmap(
+                srcBmp,
+                (srcBmp.getWidth() / 2) - 500,
+                (srcBmp.getHeight() / 2) -250,
+                1000,
+                500, matrix,
+                true
+        );
+        Mat srcMat = new Mat();
+        Bitmap bmp32 = mBitmap.copy(Bitmap.Config.ARGB_8888, true);
+        Utils.bitmapToMat(bmp32, srcMat);
+        Log.e("processZbar", "BEFORE");
+        /**Calling Native method to process image and print barcode value to console*/
+        String [] result = CvUtil.processZbar(srcMat);
+        Log.e("processZbar", "AFTER");
+        if(result!=null && result.length > 0){
+            for(int i = 0; i < result.length; i+=2){
+                mZbarDataList.add(new ZbarData(result[i + 1], result[i]));
+            Log.e("processZbar", "Type: " + result[i] + " Data: " + result[i + 1]);
+            }
+            showDialog_BarcodeFound();
+        }
+        pImage.close();
+    }
+
     /**Deblur and crop image to isolate barcode image*/
     private Bitmap deBlur(Bitmap sourceBmp) {
 
@@ -1286,6 +1332,63 @@ public class Camera2BasicFragment extends Fragment
                         Toast.makeText(getActivity(), "This is where you call your API with data from Barcode!", Toast.LENGTH_SHORT).show();
                         mResult = null;
                         //onResume();
+                    }
+                });
+                mBarcodeDialog.show();
+            }
+        });
+    }
+
+    /**Dialog to show barcode and type */
+    private void showDialog_BarcodeFound() {
+        getActivity().runOnUiThread(new Runnable() {
+            @Override
+            public void run() {
+                //onPause();
+                if(mBarcodeDialog!=null && mBarcodeDialog.isShowing()){
+                    mBarcodeDialog.dismiss();
+                }
+                index = 0;
+                mBarcodeDialog = new Dialog(getActivity());
+                mBarcodeDialog.setContentView(R.layout.barcode_dialog);
+                titleTV = mBarcodeDialog.findViewById(R.id.title_tv);
+                titleTV.setText(mZbarDataList.get(index).getmType());
+                valueTV = mBarcodeDialog.findViewById(R.id.result_tv);
+                valueTV.setText(mZbarDataList.get(index).getmData());
+                indexTV = mBarcodeDialog.findViewById(R.id.count_tv);
+                indexTV.setText((index+1)+"/"+mZbarDataList.size());
+                Button nextBtn = mBarcodeDialog.findViewById(R.id.nxt_btn);
+                Button rescanBtn = mBarcodeDialog.findViewById(R.id.scan_btn);
+                Button okBtn = mBarcodeDialog.findViewById(R.id.ok_btn);
+                rescanBtn.setOnClickListener(new View.OnClickListener() {
+                    @Override
+                    public void onClick(View v) {
+                        mBarcodeDialog.dismiss();
+                        Toast.makeText(getActivity(), "Rescaning!", Toast.LENGTH_SHORT).show();
+                        mResult = null;
+                        mZbarDataList.clear();
+                    }
+                });
+                nextBtn.setOnClickListener(new View.OnClickListener() {
+                    @Override
+                    public void onClick(View v) {
+                        if(mZbarDataList.size()>1 && index < mZbarDataList.size()-1){
+                            index++;
+                        }else{
+                            index = 0;
+                        }
+                        titleTV.setText(mZbarDataList.get(index).getmType());
+                        valueTV.setText(mZbarDataList.get(index).getmData());
+                        indexTV.setText((index+1)+"/"+mZbarDataList.size());
+                        //mBarcodeDialog.dismiss();
+                    }
+                });
+                okBtn.setOnClickListener(new View.OnClickListener() {
+                    @Override
+                    public void onClick(View v) {
+                        mZbarDataList.clear();
+                        mBarcodeDialog.dismiss();
+                        //TODO: Add what you are going to do with this data
                     }
                 });
                 mBarcodeDialog.show();
