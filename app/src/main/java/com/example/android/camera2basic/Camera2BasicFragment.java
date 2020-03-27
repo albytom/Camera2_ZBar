@@ -132,6 +132,11 @@ public class Camera2BasicFragment extends Fragment
     }
 
     /**
+     * An {@link BarcodeRectDrawView} for barcode preview.
+     */
+    private BarcodeRectDrawView mBarcodeRectDrawView;
+
+    /**
      * Tag for the {@link Log}.
      */
     private static final String TAG = "Camera2BasicFragment";
@@ -491,6 +496,7 @@ public class Camera2BasicFragment extends Fragment
         zoom3 = view.findViewById(R.id.zoom_l3);
         zoom3.setOnClickListener(this);
         mTextureView = (AutoFitTextureView) view.findViewById(R.id.texture);
+        mBarcodeRectDrawView = view.findViewById(R.id.draw_rect_view);
     }
 
     @Override
@@ -1077,6 +1083,7 @@ public class Camera2BasicFragment extends Fragment
             Log.e("processZbar", "Type: " + result[i] + " Data: " + result[i + 1]);
             }
             showDialog_BarcodeFound();
+            //mBarcodeRectDrawView.setBarcodeRect(new RectF(400, 200, 800, 600));
         }
         pImage.close();
     }
@@ -1388,6 +1395,7 @@ public class Camera2BasicFragment extends Fragment
                     public void onClick(View v) {
                         mZbarDataList.clear();
                         mBarcodeDialog.dismiss();
+                        mBarcodeRectDrawView.clearScreen();
                         //TODO: Add what you are going to do with this data
                     }
                 });

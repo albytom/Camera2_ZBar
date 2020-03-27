@@ -34,6 +34,10 @@
             android:layout_width="match_parent"
             android:layout_height="match_parent"
             android:background="@drawable/cross_hair_land" />
+        <com.example.android.camera2basic.BarcodeRectDrawView
+            android:id="@+id/draw_rect_view"
+            android:layout_width="match_parent"
+            android:layout_height="match_parent"/>
         <RelativeLayout
             android:layout_width="match_parent"
             android:layout_height="match_parent">
