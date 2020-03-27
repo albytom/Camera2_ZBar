@@ -23,7 +23,7 @@
         android:layout_centerHorizontal="true"
         android:layout_alignParentBottom="true">
         <Button
-            android:id="@+id/scan_btn"
+            android:id="@+id/rescan_btn"
             android:layout_width="wrap_content"
             android:layout_height="wrap_content"
             android:layout_weight="1"
