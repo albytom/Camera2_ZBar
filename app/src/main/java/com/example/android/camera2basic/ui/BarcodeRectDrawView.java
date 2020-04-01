@@ -1,4 +1,4 @@
-package com.example.android.camera2basic;
+package com.example.android.camera2basic.ui;
 
 import android.content.Context;
 import android.graphics.Canvas;
@@ -9,9 +9,13 @@ import android.graphics.RectF;
 import android.util.AttributeSet;
 import android.view.View;
 
+import com.example.android.camera2basic.R;
+
+import java.util.ArrayList;
+
 public class BarcodeRectDrawView extends android.support.v7.widget.AppCompatImageView {
 
-    private RectF mRect;
+    private ArrayList<RectF> mRectArray;
     private int radius;
 
     public BarcodeRectDrawView(Context context, AttributeSet attrs) {
@@ -21,16 +25,17 @@ public class BarcodeRectDrawView extends android.support.v7.widget.AppCompatImag
         {
             setLayerType(View.LAYER_TYPE_SOFTWARE, null);
         }
+        mRectArray = new ArrayList<>();
     }
 
     public void setBarcodeRect(RectF rect) {
-        this.mRect = rect;
+        this.mRectArray.add(rect);
         //Redraw after defining rect
         postInvalidate();
     }
 
     public void clearScreen(){
-        this.mRect = null;
+        this.mRectArray.clear();
         //Redraw after clearing rect
         postInvalidate();
     }
@@ -38,12 +43,14 @@ public class BarcodeRectDrawView extends android.support.v7.widget.AppCompatImag
     @Override
     public void onDraw(Canvas canvas) {
         super.onDraw(canvas);
-        if(mRect != null) {
+        if(mRectArray != null && mRectArray.size() > 0) {
             Paint paint = new Paint();
-            paint.setColor(getResources().getColor(android.R.color.holo_green_dark));
-            paint.setStyle(Paint.Style.STROKE);
-            paint.setStrokeWidth(5);
-            canvas.drawRect(mRect, paint);
+            paint.setColor(getResources().getColor(R.color.shade_green));
+            paint.setStyle(Paint.Style.FILL);
+            //paint.setStrokeWidth(3);
+            for (RectF mRect: mRectArray) {
+                canvas.drawRect(mRect, paint);
+            }
         }else{
             canvas.drawColor(Color.TRANSPARENT, PorterDuff.Mode.CLEAR);
         }

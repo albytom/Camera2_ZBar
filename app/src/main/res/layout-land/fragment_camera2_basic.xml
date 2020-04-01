@@ -22,7 +22,7 @@
         android:layout_width="match_parent"
         android:layout_height="match_parent">
 
-        <com.example.android.camera2basic.AutoFitTextureView
+        <com.example.android.camera2basic.ui.AutoFitTextureView
             android:id="@+id/texture"
             android:layout_width="match_parent"
             android:layout_height="wrap_content"
@@ -34,7 +34,7 @@
             android:layout_width="match_parent"
             android:layout_height="match_parent"
             android:background="@drawable/cross_hair_land" />
-        <com.example.android.camera2basic.BarcodeRectDrawView
+        <com.example.android.camera2basic.ui.BarcodeRectDrawView
             android:id="@+id/draw_rect_view"
             android:layout_width="match_parent"
             android:layout_height="match_parent"/>

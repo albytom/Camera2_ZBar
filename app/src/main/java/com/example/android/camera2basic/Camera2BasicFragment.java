@@ -66,6 +66,15 @@ import android.widget.Button;
 import android.widget.TextView;
 import android.widget.Toast;
 
+import com.example.android.camera2basic.data.BarcodeFormat;
+import com.example.android.camera2basic.data.ZbarData;
+import com.example.android.camera2basic.ui.AutoFitTextureView;
+import com.example.android.camera2basic.ui.BarcodeRectDrawView;
+import com.example.android.camera2basic.ui.ToastHelper;
+import com.example.android.camera2basic.util.GlobalConstants;
+import com.example.android.camera2basic.util.GraphicDecoder;
+import com.example.android.camera2basic.util.ZBarDecoder;
+import com.example.android.camera2basic.util.Zoom;
 import com.yanzhenjie.zbar.Config;
 import com.yanzhenjie.zbar.ImageScanner;
 import com.yanzhenjie.zbar.Symbol;
@@ -296,9 +305,9 @@ public class Camera2BasicFragment extends Fragment
                 printBarcodeToConsole(pImage);
                 mCapCounter = 0;
             } else {
-                pImage.close();
                 mCapCounter++;
             }
+            pImage.close();
         }
 
     };
@@ -498,7 +507,7 @@ public class Camera2BasicFragment extends Fragment
         zoom2.setOnClickListener(this);
         zoom3 = view.findViewById(R.id.zoom_l3);
         zoom3.setOnClickListener(this);
-        mTextureView = (AutoFitTextureView) view.findViewById(R.id.texture);
+        mTextureView = view.findViewById(R.id.texture);
         mBarcodeRectDrawView = view.findViewById(R.id.draw_rect_view);
         mZbarDataList = new ArrayList<ZbarData>();
     }
@@ -518,7 +527,7 @@ public class Camera2BasicFragment extends Fragment
         // available, and "onSurfaceTextureAvailable" will not be called. In that case, we can open
         // a camera and start preview from here (otherwise, we wait until the surface is ready in
         // the SurfaceTextureListener).
-        if (mTextureView.isAvailable()) {
+        if (mTextureView.isAvailable() && mCameraDevice!=null) {
             setupScanner();
             openCamera(mTextureView.getWidth(), mTextureView.getHeight());
         } else {
@@ -1083,6 +1092,11 @@ public class Camera2BasicFragment extends Fragment
         Matrix matrix = new Matrix();
 
         Bitmap srcBmp = BitmapFactory.decodeByteArray(bytes, 0, bytes.length, null);
+        Log.e("Density", "Density: " + srcBmp.getDensity() + " Width: " + srcBmp.getWidth() + " Height: " + srcBmp.getHeight());
+        GlobalConstants.SCR_HEIGHT = (srcBmp.getHeight()/2)-250;
+        GlobalConstants.SCR_WIDTH = (srcBmp.getWidth()/2)-500;
+        GlobalConstants.SCR_HEIGHT_RATIO = GlobalConstants.REAL_SCR_HEIGHT/(float)srcBmp.getHeight();
+        GlobalConstants.SCR_WIDTH_RATIO = GlobalConstants.REAL_SCR_WIDTH/(float)srcBmp.getWidth();
         /**crop the image in the centre*/
         mBitmap = Bitmap.createBitmap(
                 srcBmp,
@@ -1095,23 +1109,42 @@ public class Camera2BasicFragment extends Fragment
         Mat srcMat = new Mat();
         Bitmap bmp32 = mBitmap.copy(Bitmap.Config.ARGB_8888, true);
         Utils.bitmapToMat(bmp32, srcMat);
-        Log.e("processZbar", "BEFORE");
+        Log.e("Density", "Density: " + mBitmap.getDensity() + " Width: " + mBitmap.getWidth() + " Height: " + mBitmap.getHeight());
+        //Log.e("processZbar", "BEFORE");
         /**Calling Native method to process image and print barcode value to console*/
         String[] result = CvUtil.processZbar(srcMat);
-        Log.e("processZbar", "AFTER");
+        //Log.e("processZbar", "AFTER");
+        mBarcodeRectDrawView.clearScreen();
         if (result != null && result.length > 0) {
-            for (int i = 0; i < result.length; i += 2) {
+            for (int i = 0; i < result.length; i += 3) {
                 if (!result[i + 1].equals(mResult)) {
-                    mZbarDataList.add(new ZbarData(result[i + 1], result[i]));
+                    RectF rect = stringToRect(result[i +2]);
+                    mZbarDataList.add(new ZbarData(result[i + 1], result[i], rect));
+                    mBarcodeRectDrawView.setBarcodeRect(rect);
                 }
-                Log.e("processZbar", "Type: " + result[i] + " Data: " + result[i + 1]);
+                Log.e("processZbar", "Type: " + result[i] + " Data: " + result[i + 1]+ " Loc: " + result[i +2]);
             }
-            showDialog_BarcodeFound();
+            //showDialog_BarcodeFound();
             //mBarcodeRectDrawView.setBarcodeRect(new RectF(400, 200, 800, 600));
         }
         pImage.close();
     }
 
+    private RectF stringToRect(String locData){
+        List<String> numbers = Arrays.asList(locData.split(","));
+        List<Integer> numbersInt = new ArrayList<>();
+        for (String number : numbers) {
+            numbersInt.add(Integer.valueOf(number));
+        }
+        float l = (numbersInt.get(0)+ GlobalConstants.SCR_WIDTH) * GlobalConstants.SCR_WIDTH_RATIO;
+        float t = (numbersInt.get(1)+ GlobalConstants.SCR_HEIGHT)* GlobalConstants.SCR_HEIGHT_RATIO;
+        float r = (numbersInt.get(2)+ GlobalConstants.SCR_WIDTH)* GlobalConstants.SCR_WIDTH_RATIO;
+        float b = (numbersInt.get(3)+ GlobalConstants.SCR_HEIGHT)* GlobalConstants.SCR_HEIGHT_RATIO;
+        Log.e("Density", "Rect: Width: " + (r - l) + " Height: " + (b - t));
+        Log.e("Density",  " W: "+GlobalConstants.REAL_SCR_WIDTH + " H: " + GlobalConstants.REAL_SCR_HEIGHT);
+        Log.e(TAG, "l: " + l + " t: " + t + " r:" + r + " b: " + b);
+        return new RectF(l, t, r, b);
+    }
     /**
      * Deblur and crop image to isolate barcode image
      */

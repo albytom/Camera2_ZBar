@@ -1,4 +1,4 @@
-package com.example.android.camera2basic;
+package com.example.android.camera2basic.util;
 
 import android.graphics.Rect;
 import android.hardware.camera2.CameraCharacteristics;

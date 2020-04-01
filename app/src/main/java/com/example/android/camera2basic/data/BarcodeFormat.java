@@ -1,4 +1,4 @@
-package com.example.android.camera2basic;
+package com.example.android.camera2basic.data;
 
 import com.yanzhenjie.zbar.Symbol;
 

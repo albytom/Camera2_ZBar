@@ -1,4 +1,4 @@
-package com.example.android.camera2basic;
+package com.example.android.camera2basic.ui;
 
 import android.app.Activity;
 import android.content.Context;
@@ -14,11 +14,11 @@ import android.widget.Toast;
  * @github https://github.com/Simon-Leeeeeeeee/XCodeScanner
  */
 @SuppressWarnings({"unused", "ShowToast"})
-class ToastHelper {
+public class ToastHelper {
     private static Toast mToast = null;
 
-    static final int LENGTH_SHORT = 0;
-    static final int LENGTH_LONG = 1;
+    public static final int LENGTH_SHORT = 0;
+    public static final int LENGTH_LONG = 1;
 
     /**
      * 弹出Toast
@@ -36,7 +36,7 @@ class ToastHelper {
      * @param text     提示文本
      * @param duration 持续时间（0：短；1：长）
      */
-    static void showToast(Context context, CharSequence text, int duration) {
+    public static void showToast(Context context, CharSequence text, int duration) {
         show(context, text, duration, null);
     }
 

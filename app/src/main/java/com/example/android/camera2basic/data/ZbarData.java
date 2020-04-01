@@ -1,18 +1,18 @@
-package com.example.android.camera2basic;
+package com.example.android.camera2basic.data;
 
-import android.graphics.Rect;
+import android.graphics.RectF;
 
 public class ZbarData {
     String mData;
     String mType;
-    Rect mRect;
+    RectF mRect;
 
     public ZbarData(String mData, String mType) {
         this.mData = mData;
         this.mType = mType;
     }
 
-    public ZbarData(String mData, String mType, Rect mRect) {
+    public ZbarData(String mData, String mType, RectF mRect) {
         this.mData = mData;
         this.mType = mType;
         this.mRect = mRect;
@@ -34,11 +34,11 @@ public class ZbarData {
         this.mType = mType;
     }
 
-    public Rect getmRect() {
+    public RectF getmRect() {
         return mRect;
     }
 
-    public void setmRect(Rect mRect) {
+    public void setmRect(RectF mRect) {
         this.mRect = mRect;
     }
 }

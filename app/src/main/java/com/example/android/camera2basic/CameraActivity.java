@@ -18,7 +18,10 @@ package com.example.android.camera2basic;
 
 import android.os.Bundle;
 import android.support.v7.app.AppCompatActivity;
+import android.util.DisplayMetrics;
 import android.util.Log;
+
+import com.example.android.camera2basic.util.GlobalConstants;
 
 import org.opencv.android.OpenCVLoader;
 
@@ -37,11 +40,26 @@ public class CameraActivity extends AppCompatActivity {
     protected void onCreate(Bundle savedInstanceState) {
         super.onCreate(savedInstanceState);
         setContentView(R.layout.activity_camera);
+
         if (null == savedInstanceState) {
             getSupportFragmentManager().beginTransaction()
                     .replace(R.id.container, Camera2BasicFragment.newInstance())
                     .commit();
         }
+        DisplayMetrics displayMetrics = new DisplayMetrics();
+        getWindowManager().getDefaultDisplay().getMetrics(displayMetrics);
+
+        GlobalConstants.REAL_SCR_HEIGHT = displayMetrics.heightPixels;
+        GlobalConstants.REAL_SCR_WIDTH = displayMetrics.widthPixels;
+        float density = displayMetrics.densityDpi;
+        Log.e("Density", " densityDpi: "+ density + " W: "+GlobalConstants.REAL_SCR_WIDTH + " H: " + GlobalConstants.REAL_SCR_HEIGHT);
     }
 
+    @Override
+    protected void onResume() {
+        super.onResume();
+        getSupportFragmentManager().beginTransaction()
+                .replace(R.id.container, Camera2BasicFragment.newInstance())
+                .commit();
+    }
 }

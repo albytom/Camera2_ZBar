@@ -12,6 +12,7 @@
 #include <vector>
 
 
+class value;
 
 extern "C" {
 
@@ -132,7 +133,7 @@ JNIEXPORT jintArray JNICALL Java_com_example_android_camera2basic_CvUtil_process
     //image = image_out;
 
     jintArray result;
-    result = env -> NewIntArray(4);
+    result = env->NewIntArray(4);
     // fill a temp structure to use to populate the java int array
     jint fill[4];
 
@@ -148,15 +149,13 @@ JNIEXPORT jintArray JNICALL Java_com_example_android_camera2basic_CvUtil_process
     //__android_log_print(ANDROID_LOG_ERROR, "TRACKERS", "%s", "deblur completed");
     return result;
 }
-typedef struct
-{
+typedef struct {
     string type;
     string data;
-    vector <Point> location;
-}decodedObject;
+    vector<Point> location;
+} decodedObject;
 
-void decode(Mat &im, vector<decodedObject>&decodedObjects)
-{
+void decode(Mat &im, vector<decodedObject> &decodedObjects) {
 
     // Create zbar scanner
     ImageScanner scanner;
@@ -168,17 +167,17 @@ void decode(Mat &im, vector<decodedObject>&decodedObjects)
 
     // Convert image to grayscale
     Mat imGray;
-    cvtColor(im, imGray,CV_BGR2GRAY);
+    cvtColor(im, imGray, CV_BGR2GRAY);
 
     // Wrap image data in a zbar image
-    Image image(im.cols, im.rows, "Y800", (uchar *)imGray.data, im.cols * im.rows);
+    Image image(im.cols, im.rows, "Y800", (uchar *) imGray.data, im.cols * im.rows);
 
     // Scan the image for barcodes and QRCodes
     int n = scanner.scan(image);
 
 
-    for(Image::SymbolIterator symbol = image.symbol_begin(); symbol != image.symbol_end(); ++symbol)
-    {
+    for (Image::SymbolIterator symbol = image.symbol_begin();
+         symbol != image.symbol_end(); ++symbol) {
         decodedObject obj;
 
         obj.type = symbol->get_type_name();
@@ -189,6 +188,17 @@ void decode(Mat &im, vector<decodedObject>&decodedObjects)
         cout << "Data : " << obj.data << endl << endl;
         //__android_log_print(ANDROID_LOG_ERROR, "TRACKERS", "Type : %s ", obj.type );
         //__android_log_print(ANDROID_LOG_ERROR, "TRACKERS", "Data : %s", obj.data );
+
+        __android_log_print(ANDROID_LOG_ERROR, "TRACKERS", "symbol size: %d ", symbol->get_location_size());
+        // Obtain location
+        vector<Point> loc;
+        loc.clear();
+        for (int i = 0; i < symbol->get_location_size(); i++) {
+            loc.push_back(Point(symbol->get_location_x(i), symbol->get_location_y(i)));
+            //__android_log_print(ANDROID_LOG_ERROR, "TRACKERS", "symbol X%d: %d Y%d:  %d ", i, symbol->get_location_x(i), i, symbol->get_location_y(i));
+        }
+        obj.location.clear();
+        obj.location = loc;
         decodedObjects.push_back(obj);
     }
 
@@ -202,29 +212,88 @@ JNIEXPORT jobjectArray JNICALL Java_com_example_android_camera2basic_CvUtil_proc
     cv::Mat image = *pMatRgb;
     // Variable for decoded objects
     vector<decodedObject> decodedObjects;
-
+    decodedObjects.clear();
     // Find and decode barcodes and QR codes
     decode(image, decodedObjects);
 
 
-    if(!decodedObjects.empty()){
+    if (!decodedObjects.empty()) {
         int counter = 0;
-        jobjectArray ret = (jobjectArray)env->NewObjectArray(decodedObjects.size()*2,env->FindClass("java/lang/String"),env->NewStringUTF(""));
-        for(int i = 0; i <decodedObjects.size(); i++){
+        jobjectArray ret = (jobjectArray) env->NewObjectArray(decodedObjects.size() * 3,
+                                                              env->FindClass("java/lang/String"),
+                                                              env->NewStringUTF(""));
+        for (int i = 0; i < decodedObjects.size(); i++) {
             decodedObject obj = decodedObjects[i];
-            const char* str = obj.type.c_str(); //
-            __android_log_print(ANDROID_LOG_ERROR, "TRACKERS", "Type: %s ", str );
-            printf("%s\n", str);
-            const char* strd = obj.data.c_str();
-            __android_log_print(ANDROID_LOG_ERROR, "TRACKERS", "Data: %s ", strd );
-            printf("%s\n", strd);
-            env->SetObjectArrayElement(ret,counter,env->NewStringUTF(str));
+            const char *strType = obj.type.c_str(); //
+            __android_log_print(ANDROID_LOG_ERROR, "TRACKERS", "Type: %s ", strType);
+            printf("%s\n", strType);
+            const char *strData = obj.data.c_str();
+            __android_log_print(ANDROID_LOG_ERROR, "TRACKERS", "Data: %s ", strData);
+            printf("%s\n", strData);
+            env->SetObjectArrayElement(ret, counter, env->NewStringUTF(strType));
             counter++;
-            env->SetObjectArrayElement(ret,counter,env->NewStringUTF(strd));
+            env->SetObjectArrayElement(ret,counter,env->NewStringUTF(strData));
             counter++;
+            vector<Point> points = decodedObjects[i].location;
+            vector<Point> hull;
+
+            std::vector<cv::Point> cv_points;
+            // do something to fill points...
+            cv_points = points;
+            cv::Rect rect = cv::boundingRect(cv_points);
+            // If the points do not form a quad, find convex hull
+
+            ostringstream oss("");
+            oss << rect.tl().x;
+            oss << ",";
+            oss << rect.tl().y;
+            oss << ",";
+            oss << rect.br().x;
+            oss << ",";
+            oss << rect.br().y;
+            std::string cordinates = oss.str();
+            const char *strLoc = cordinates.c_str();
+            __android_log_print(ANDROID_LOG_ERROR, "TRACKERS", "Data: %s ", strLoc);
+            env->SetObjectArrayElement(ret, counter, env->NewStringUTF(strLoc));
+            counter++;
+            /*if (points.size() > 4) {
+                convexHull(points, hull);
+
+                __android_log_print(ANDROID_LOG_ERROR, "TRACKERS", "symbol X1: %d Y1:  %d ", rect.tl().x,  rect.tl().y);
+                __android_log_print(ANDROID_LOG_ERROR, "TRACKERS", "symbol X2: %d Y2:  %d ", rect.br().x,  rect.br().y);
+                __android_log_print(ANDROID_LOG_ERROR, "TRACKERS", "Points: %d ", points.size());
+            } else {
+                hull = points;
+
+                cout << "Location : " << hull << endl;
+
+                // Number of points in the convex hull
+                int n = hull.size();
+                __android_log_print(ANDROID_LOG_ERROR, "TRACKERS", "N val: %d ", n);
+                std::string cordinates = "";
+                for (int j = 0; j < n; j++) {
+                    std::string x = std::to_string(hull[j].x);
+                    cordinates = cordinates + x + ", ";
+                    __android_log_print(ANDROID_LOG_ERROR, "TRACKERS", "Loc Y: %d ", hull[j].x);
+                    std::string y = std::to_string(hull[j].y);
+                    __android_log_print(ANDROID_LOG_ERROR, "TRACKERS", "Loc Y: %d ", hull[j].y);
+                    if (j == n - 1) {
+                        cordinates = cordinates + y;
+                    } else {
+                        cordinates = cordinates + y + ", ";
+                    }
+                }
+                const char *strLoc = cordinates.c_str();
+                __android_log_print(ANDROID_LOG_ERROR, "TRACKERS", "Data: %s ", strLoc);
+                printf("%s\n", strLoc);
+                env->SetObjectArrayElement(ret, counter, env->NewStringUTF(strLoc));
+                counter++;
+            }*/
         }
         return ret;
     }
     return NULL;
 }
+
+
 }
