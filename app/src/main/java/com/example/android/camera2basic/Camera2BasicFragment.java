@@ -22,6 +22,7 @@ import android.app.AlertDialog;
 import android.app.Dialog;
 import android.content.Context;
 import android.content.DialogInterface;
+import android.content.Intent;
 import android.content.pm.PackageManager;
 import android.content.res.Configuration;
 import android.content.res.Resources;
@@ -63,10 +64,13 @@ import android.view.TextureView;
 import android.view.View;
 import android.view.ViewGroup;
 import android.widget.Button;
+import android.widget.CheckBox;
 import android.widget.TextView;
 import android.widget.Toast;
 
 import com.example.android.camera2basic.data.BarcodeFormat;
+import com.example.android.camera2basic.data.DataStore;
+import com.example.android.camera2basic.data.ItemData;
 import com.example.android.camera2basic.data.ZbarData;
 import com.example.android.camera2basic.ui.AutoFitTextureView;
 import com.example.android.camera2basic.ui.BarcodeRectDrawView;
@@ -100,6 +104,8 @@ public class Camera2BasicFragment extends Fragment
     private ImageScanner mScanner;
     private List<BarcodeFormat> mFormats;
     private ArrayList<ZbarData> mZbarDataList;
+    DataStore mDataStore;
+    ArrayList<ItemData> mItemDataArrayList;
     /**
      * Conversion from screen rotation to JPEG orientation.
      */
@@ -108,8 +114,9 @@ public class Camera2BasicFragment extends Fragment
     private static final String FRAGMENT_DIALOG = "dialog";
     public float finger_spacing = 0;
     private float mZoom_level = 0;
-    private TextView zoom1, zoom2, zoom3;
-    private Button scan_btn;
+    private TextView zoom1, zoom2, zoom3, bCodeTv, itemTv, locTv;
+    CheckBox isFoundCv;
+    private Button prevBtn, skipBtn, nextBtn;
 
     private Bitmap mBitmap;
     private int[] mPixels;
@@ -420,6 +427,7 @@ public class Camera2BasicFragment extends Fragment
     private CaptureRequest mCaptureRequest;
     private CaptureRequest.Builder mCaptureRequestBuilder;
     private Surface mSurface;
+    private int position = 0;
 
     /**
      * Shows a {@link Toast} on the UI thread.
@@ -507,9 +515,22 @@ public class Camera2BasicFragment extends Fragment
         zoom2.setOnClickListener(this);
         zoom3 = view.findViewById(R.id.zoom_l3);
         zoom3.setOnClickListener(this);
+        bCodeTv = view.findViewById(R.id.i_content_tv);
+        itemTv = view.findViewById(R.id.i_title_tv);
+        locTv = view.findViewById(R.id.i_loc_tv);
+        isFoundCv = view.findViewById(R.id.item_found);
+        prevBtn = view.findViewById(R.id.prev_btn);
+        prevBtn.setOnClickListener(this);
+        skipBtn = view.findViewById(R.id.skip_btn);
+        skipBtn.setOnClickListener(this);
+        nextBtn = view.findViewById(R.id.next_btn);
+        nextBtn.setOnClickListener(this);
         mTextureView = view.findViewById(R.id.texture);
         mBarcodeRectDrawView = view.findViewById(R.id.draw_rect_view);
         mZbarDataList = new ArrayList<ZbarData>();
+        mDataStore = DataStore.getInstance();
+        mItemDataArrayList = mDataStore.getItemDataArrayList();
+        setItemData(position);
     }
 
     @Override
@@ -527,7 +548,7 @@ public class Camera2BasicFragment extends Fragment
         // available, and "onSurfaceTextureAvailable" will not be called. In that case, we can open
         // a camera and start preview from here (otherwise, we wait until the surface is ready in
         // the SurfaceTextureListener).
-        if (mTextureView.isAvailable() && mCameraDevice!=null) {
+        if (mTextureView.isAvailable() && mCameraDevice != null) {
             setupScanner();
             openCamera(mTextureView.getWidth(), mTextureView.getHeight());
         } else {
@@ -562,6 +583,13 @@ public class Camera2BasicFragment extends Fragment
         } else {
             super.onRequestPermissionsResult(requestCode, permissions, grantResults);
         }
+    }
+
+    private void setItemData(int pos) {
+        itemTv.setText(mItemDataArrayList.get(pos).getItemName());
+        locTv.setText(mItemDataArrayList.get(pos).getItemLoc());
+        bCodeTv.setText(mItemDataArrayList.get(pos).getItemContent());
+        isFoundCv.setChecked(mItemDataArrayList.get(pos).isItemFound());
     }
 
     /**
@@ -1032,6 +1060,41 @@ public class Camera2BasicFragment extends Fragment
                     pE.printStackTrace();
                 }
                 break;
+            case R.id.prev_btn:
+                if (position > 0) {
+                    position--;
+                    setItemData(position);
+                }
+                break;
+            case R.id.skip_btn:
+                //TODO: Show dialog asking if they want to skip?
+                /*if(position < mItemDataArrayList.size()-1){
+                    position++;
+                    setItemData(position);
+                }else{
+                    mDataStore.setItemDataPickedList(mItemDataArrayList);
+                }*/
+                break;
+            case R.id.next_btn:
+                if (mZbarDataList.size() > 0) {
+                    if (position <= mItemDataArrayList.size() - 1) {
+                        ItemData itemData = mItemDataArrayList.get(position);
+                        itemData.setItemContent(mZbarDataList.get(index).getmData());
+                        itemData.setItemFound(true);
+                        mItemDataArrayList.set(itemData.getId(), itemData);
+                        if (position < mItemDataArrayList.size() - 1) {
+                            position++;
+                            setItemData(position);
+                        }
+                    } else {
+                        mDataStore.setItemDataPickedList(mItemDataArrayList);
+                        Intent intent = new Intent(getContext(), HomeActivity.class);
+                        startActivity(intent);
+                        getActivity().finish();
+                    }
+                    mZbarDataList.clear();
+                }
+                break;
         }
     }
 
@@ -1093,10 +1156,10 @@ public class Camera2BasicFragment extends Fragment
 
         Bitmap srcBmp = BitmapFactory.decodeByteArray(bytes, 0, bytes.length, null);
         Log.e("Density", "Density: " + srcBmp.getDensity() + " Width: " + srcBmp.getWidth() + " Height: " + srcBmp.getHeight());
-        GlobalConstants.SCR_HEIGHT = (srcBmp.getHeight()/2)-250;
-        GlobalConstants.SCR_WIDTH = (srcBmp.getWidth()/2)-500;
-        GlobalConstants.SCR_HEIGHT_RATIO = GlobalConstants.REAL_SCR_HEIGHT/(float)srcBmp.getHeight();
-        GlobalConstants.SCR_WIDTH_RATIO = GlobalConstants.REAL_SCR_WIDTH/(float)srcBmp.getWidth();
+        GlobalConstants.SCR_HEIGHT = (srcBmp.getHeight() / 2) - 250;
+        GlobalConstants.SCR_WIDTH = (srcBmp.getWidth() / 2) - 500;
+        GlobalConstants.SCR_HEIGHT_RATIO = GlobalConstants.REAL_SCR_HEIGHT / (float) srcBmp.getHeight();
+        GlobalConstants.SCR_WIDTH_RATIO = GlobalConstants.REAL_SCR_WIDTH / (float) srcBmp.getWidth();
         /**crop the image in the centre*/
         mBitmap = Bitmap.createBitmap(
                 srcBmp,
@@ -1118,11 +1181,13 @@ public class Camera2BasicFragment extends Fragment
         if (result != null && result.length > 0) {
             for (int i = 0; i < result.length; i += 3) {
                 if (!result[i + 1].equals(mResult)) {
-                    RectF rect = stringToRect(result[i +2]);
+                    RectF rect = stringToRect(result[i + 2]);
                     mZbarDataList.add(new ZbarData(result[i + 1], result[i], rect));
+                    setBarcodeData(result[i + 1]);
+
                     mBarcodeRectDrawView.setBarcodeRect(rect);
                 }
-                Log.e("processZbar", "Type: " + result[i] + " Data: " + result[i + 1]+ " Loc: " + result[i +2]);
+                Log.e("processZbar", "Type: " + result[i] + " Data: " + result[i + 1] + " Loc: " + result[i + 2]);
             }
             //showDialog_BarcodeFound();
             //mBarcodeRectDrawView.setBarcodeRect(new RectF(400, 200, 800, 600));
@@ -1130,21 +1195,30 @@ public class Camera2BasicFragment extends Fragment
         pImage.close();
     }
 
-    private RectF stringToRect(String locData){
+    private void setBarcodeData(final String data) {
+        getActivity().runOnUiThread(new Thread(new Runnable() {
+            public void run() {
+                bCodeTv.setText(data);
+            }
+        }));
+    }
+
+    private RectF stringToRect(String locData) {
         List<String> numbers = Arrays.asList(locData.split(","));
         List<Integer> numbersInt = new ArrayList<>();
         for (String number : numbers) {
             numbersInt.add(Integer.valueOf(number));
         }
-        float l = (numbersInt.get(0)+ GlobalConstants.SCR_WIDTH) * GlobalConstants.SCR_WIDTH_RATIO;
-        float t = (numbersInt.get(1)+ GlobalConstants.SCR_HEIGHT)* GlobalConstants.SCR_HEIGHT_RATIO;
-        float r = (numbersInt.get(2)+ GlobalConstants.SCR_WIDTH)* GlobalConstants.SCR_WIDTH_RATIO;
-        float b = (numbersInt.get(3)+ GlobalConstants.SCR_HEIGHT)* GlobalConstants.SCR_HEIGHT_RATIO;
+        float l = (numbersInt.get(0) + GlobalConstants.SCR_WIDTH) * GlobalConstants.SCR_WIDTH_RATIO;
+        float t = (numbersInt.get(1) + GlobalConstants.SCR_HEIGHT) * GlobalConstants.SCR_HEIGHT_RATIO;
+        float r = (numbersInt.get(2) + GlobalConstants.SCR_WIDTH) * GlobalConstants.SCR_WIDTH_RATIO;
+        float b = (numbersInt.get(3) + GlobalConstants.SCR_HEIGHT) * GlobalConstants.SCR_HEIGHT_RATIO;
         Log.e("Density", "Rect: Width: " + (r - l) + " Height: " + (b - t));
-        Log.e("Density",  " W: "+GlobalConstants.REAL_SCR_WIDTH + " H: " + GlobalConstants.REAL_SCR_HEIGHT);
+        Log.e("Density", " W: " + GlobalConstants.REAL_SCR_WIDTH + " H: " + GlobalConstants.REAL_SCR_HEIGHT);
         Log.e(TAG, "l: " + l + " t: " + t + " r:" + r + " b: " + b);
         return new RectF(l, t, r, b);
     }
+
     /**
      * Deblur and crop image to isolate barcode image
      */

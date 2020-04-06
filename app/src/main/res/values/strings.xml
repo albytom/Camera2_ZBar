@@ -27,4 +27,11 @@
     <string name="description_info">Info</string>
     <string name="request_permission">This sample needs camera permission.</string>
     <string name="camera_error">This device doesn\'t support Camera2 API.</string>
+    <string name="go">GO</string>
+    <string name="item_1">Item 1</string>
+    <string name="a_1_r_1">A-1 R-1</string>
+    <string name="_0987654321">0987654321</string>
+    <string name="prev">PREV</string>
+    <string name="skip">SKIP</string>
+    <string name="next">NEXT</string>
 </resources>
