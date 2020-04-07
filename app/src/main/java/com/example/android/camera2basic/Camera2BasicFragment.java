@@ -116,7 +116,7 @@ public class Camera2BasicFragment extends Fragment
     private float mZoom_level = 0;
     private TextView zoom1, zoom2, zoom3, bCodeTv, itemTv, locTv;
     CheckBox isFoundCv;
-    private Button prevBtn, skipBtn, nextBtn;
+    private Button prevBtn, nextBtn;
 
     private Bitmap mBitmap;
     private int[] mPixels;
@@ -521,8 +521,6 @@ public class Camera2BasicFragment extends Fragment
         isFoundCv = view.findViewById(R.id.item_found);
         prevBtn = view.findViewById(R.id.prev_btn);
         prevBtn.setOnClickListener(this);
-        skipBtn = view.findViewById(R.id.skip_btn);
-        skipBtn.setOnClickListener(this);
         nextBtn = view.findViewById(R.id.next_btn);
         nextBtn.setOnClickListener(this);
         mTextureView = view.findViewById(R.id.texture);
@@ -530,6 +528,13 @@ public class Camera2BasicFragment extends Fragment
         mZbarDataList = new ArrayList<ZbarData>();
         mDataStore = DataStore.getInstance();
         mItemDataArrayList = mDataStore.getItemDataArrayList();
+
+        if(mItemDataArrayList.size() > 1){
+            nextBtn.setText(getResources().getString(R.string.next));
+        }else{
+            nextBtn.setText(getResources().getString(R.string.skip));
+        }
+
         setItemData(position);
     }
 
@@ -590,6 +595,11 @@ public class Camera2BasicFragment extends Fragment
         locTv.setText(mItemDataArrayList.get(pos).getItemLoc());
         bCodeTv.setText(mItemDataArrayList.get(pos).getItemContent());
         isFoundCv.setChecked(mItemDataArrayList.get(pos).isItemFound());
+        if(mItemDataArrayList.get(pos).getItemContent()!=null){
+            nextBtn.setText(getResources().getString(R.string.next));
+        }else{
+            nextBtn.setText(getResources().getString(R.string.skip));
+        }
     }
 
     /**
@@ -1066,36 +1076,36 @@ public class Camera2BasicFragment extends Fragment
                     setItemData(position);
                 }
                 break;
-            case R.id.skip_btn:
-                //TODO: Show dialog asking if they want to skip?
-                /*if(position < mItemDataArrayList.size()-1){
-                    position++;
-                    setItemData(position);
-                }else{
-                    mDataStore.setItemDataPickedList(mItemDataArrayList);
-                }*/
-                break;
             case R.id.next_btn:
-                if (mZbarDataList.size() > 0) {
-                    if (position <= mItemDataArrayList.size() - 1) {
-                        ItemData itemData = mItemDataArrayList.get(position);
-                        itemData.setItemContent(mZbarDataList.get(index).getmData());
-                        itemData.setItemFound(true);
-                        mItemDataArrayList.set(itemData.getId(), itemData);
-                        if (position < mItemDataArrayList.size() - 1) {
-                            position++;
-                            setItemData(position);
-                        }
-                    } else {
-                        mDataStore.setItemDataPickedList(mItemDataArrayList);
-                        Intent intent = new Intent(getContext(), HomeActivity.class);
-                        startActivity(intent);
-                        getActivity().finish();
-                    }
-                    mZbarDataList.clear();
+                if (mZbarDataList.size() > 0 || mItemDataArrayList.get(position).isItemFound()) {
+                    nextButtonClick();
+                }else{
+                    showDialog_SkipItem(mItemDataArrayList.get(position).getItemName());
                 }
                 break;
         }
+    }
+
+    private void nextButtonClick() {
+        if (position <= mItemDataArrayList.size() - 1) {
+            ItemData itemData = mItemDataArrayList.get(position);
+            if (!itemData.isItemFound() && mZbarDataList.size() > 0) {
+                itemData.setItemContent(mZbarDataList.get(index).getmData());
+                itemData.setItemFound(true);
+                mItemDataArrayList.set(itemData.getId(), itemData);
+            }
+            if (position < mItemDataArrayList.size() - 1) {
+                position++;
+                setItemData(position);
+            }
+        } else {
+            mDataStore.setItemDataPickedList(mItemDataArrayList);
+            Intent intent = new Intent(getContext(), HomeActivity.class);
+            intent.putExtra("data", "data");
+            startActivity(intent);
+            getActivity().finish();
+        }
+        mZbarDataList.clear();
     }
 
     private void setAutoFlash(CaptureRequest.Builder requestBuilder) {
@@ -1199,6 +1209,7 @@ public class Camera2BasicFragment extends Fragment
         getActivity().runOnUiThread(new Thread(new Runnable() {
             public void run() {
                 bCodeTv.setText(data);
+                nextBtn.setText(getResources().getString(R.string.next));
             }
         }));
     }
@@ -1553,6 +1564,37 @@ public class Camera2BasicFragment extends Fragment
                 mBarcodeDialog.show();
             }
         });
+    }
+
+    /**
+     * Dialog to show barcode and type
+     */
+    private void showDialog_SkipItem(String item) {
+                mBarcodeDialog = new Dialog(getActivity());
+                mBarcodeDialog.setContentView(R.layout.skip_dialog);
+                TextView titleTV = mBarcodeDialog.findViewById(R.id.title_tv);
+                titleTV.setText(getResources().getString(R.string._skip_item)+ " " + item + " ?");
+                TextView yesTv = mBarcodeDialog.findViewById(R.id.yes_tv);
+                TextView noTv = mBarcodeDialog.findViewById(R.id.no_tv);
+                    yesTv.setOnClickListener(new View.OnClickListener() {
+                    @Override
+                    public void onClick(View v) {
+                        getActivity().runOnUiThread(new Runnable() {
+                            @Override
+                            public void run() {
+                                nextButtonClick();
+                                mBarcodeDialog.dismiss();
+                            }
+                        });
+                    }
+                });
+                noTv.setOnClickListener(new View.OnClickListener() {
+                    @Override
+                    public void onClick(View v) {
+                        mBarcodeDialog.dismiss();
+                    }
+                });
+                mBarcodeDialog.show();
     }
 
     /**

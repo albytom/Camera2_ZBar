@@ -28,10 +28,19 @@
     <string name="request_permission">This sample needs camera permission.</string>
     <string name="camera_error">This device doesn\'t support Camera2 API.</string>
     <string name="go">GO</string>
+    <string name="finish">Finish</string>
     <string name="item_1">Item 1</string>
     <string name="a_1_r_1">A-1 R-1</string>
     <string name="_0987654321">0987654321</string>
     <string name="prev">PREV</string>
     <string name="skip">SKIP</string>
     <string name="next">NEXT</string>
+    <string name="q_login">Please select your account to start picking.</string>
+    <string name="john">John Doe</string>
+    <string name="jane">Jane Dale</string>
+    <string name="gadgeon">Powered by GadgEon Smart Systems</string>
+    <string name="yes">Yes</string>
+    <string name="no">No</string>
+    <string name="_pick_up_pending">Do you want to pick-up the pending items?</string>
+    <string name="_skip_item">Do you want to skip</string>
 </resources>

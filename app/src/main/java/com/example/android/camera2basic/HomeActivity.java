@@ -28,30 +28,43 @@ public class HomeActivity extends AppCompatActivity {
     ItemGridAdapter mItemGridAdapter;
     DataStore mDataStore;
     Button goButton;
+    private static String STATUS = "";
 
     @Override
     protected void onCreate(@Nullable Bundle savedInstanceState) {
         super.onCreate(savedInstanceState);
         setContentView(R.layout.activity_home);
+
+        goButton = findViewById(R.id.button_go);
+        Bundle extras = getIntent().getExtras();
         mDataStore = DataStore.getInstance();
         RecyclerView recyclerView = findViewById(R.id.rv_data);
         int numberOfColumns = 4;
         recyclerView.setLayoutManager(new GridLayoutManager(this, numberOfColumns));
-        if (mDataStore.getItemDataArrayList().size() < 1) {
-            mDataStore.setItemDataArrayList(getDataFromJSON());
-            mItemGridAdapter = new ItemGridAdapter(this, mDataStore.getItemDataArrayList());
-        }else{
-            mItemGridAdapter = new ItemGridAdapter(this, mDataStore.getItemDataPickedList());
+        if (extras != null) {
+            if(extras.getString("data")!=null && extras.getString("data").equals("data")){
+                mItemGridAdapter = new ItemGridAdapter(this, mDataStore.getItemDataPickedList());
+                goButton.setText(getResources().getString(R.string.finish));
+                STATUS = getResources().getString(R.string.finish);
+            }else{
+                mDataStore.setItemDataArrayList(getDataFromJSON());
+                mItemGridAdapter = new ItemGridAdapter(this, mDataStore.getItemDataArrayList());
+                goButton.setText(getResources().getString(R.string.go));
+                STATUS = getResources().getString(R.string.go);
+            }
         }
-
         recyclerView.setAdapter(mItemGridAdapter);
-        goButton = findViewById(R.id.button_go);
+
         goButton.setOnClickListener(new View.OnClickListener() {
             @Override
             public void onClick(View v) {
-                Intent intent = new Intent(HomeActivity.this, CameraActivity.class);
-                startActivity(intent);
-                finish();
+                if (STATUS.equalsIgnoreCase(getResources().getString(R.string.go))) {
+                    Intent intent = new Intent(HomeActivity.this, CameraActivity.class);
+                    startActivity(intent);
+                    finish();
+                } else {
+
+                }
             }
         });
     }

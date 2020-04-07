@@ -1,0 +1,53 @@
+<?xml version="1.0" encoding="utf-8"?>
+<RelativeLayout
+    xmlns:android="http://schemas.android.com/apk/res/android"
+    android:layout_width="match_parent"
+    android:layout_height="match_parent">
+    <ImageView
+        android:id="@+id/logo"
+        android:layout_width="320dp"
+        android:layout_height="wrap_content"
+        android:layout_centerHorizontal="true"
+        android:layout_alignParentTop="true"
+        android:layout_margin="10dp"
+        android:layout_above="@id/qtv"
+        android:src="@drawable/logo"/>
+
+    <TextView
+        android:id="@+id/qtv"
+        android:layout_centerInParent="true"
+        android:layout_width="wrap_content"
+        android:layout_height="wrap_content"
+        android:text="@string/q_login"
+        />
+    <TextView
+        android:id="@+id/jon_tv"
+        android:layout_width="wrap_content"
+        android:layout_height="wrap_content"
+        android:layout_below="@id/qtv"
+        android:layout_centerHorizontal="true"
+        android:layout_margin="10dp"
+        android:text="@string/john"
+        android:textSize="26sp"/>
+
+    <TextView
+        android:id="@+id/jan_tv"
+        android:layout_width="wrap_content"
+        android:layout_height="wrap_content"
+        android:layout_below="@id/jon_tv"
+        android:layout_centerHorizontal="true"
+        android:layout_margin="10dp"
+        android:text="@string/jane"
+        android:textSize="26sp"/>
+
+    <TextView
+        android:id="@+id/gad_tv"
+        android:layout_width="wrap_content"
+        android:layout_height="wrap_content"
+        android:layout_alignParentBottom="true"
+        android:layout_centerHorizontal="true"
+        android:padding="10dp"
+        android:layout_margin="10dp"
+        android:text="@string/gadgeon"
+        android:textSize="12sp"/>
+</RelativeLayout>
