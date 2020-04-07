@@ -15,38 +15,6 @@
     {
       "item": "Item 4",
       "location": "A3 R2"
-    },
-    {
-      "item": "Item 5",
-      "location": "A3 R5"
-    },
-    {
-      "item": "Item 6",
-      "location": "A4 R10"
-    },
-    {
-      "item": "Item 7",
-      "location": "A4 R5"
-    },
-    {
-      "item": "Item 8",
-      "location": "A5 R7"
-    },
-    {
-      "item": "Item 9",
-      "location": "A5 R2"
-    },
-    {
-      "item": "Item 10",
-      "location": "A5 R7"
-    },
-    {
-      "item": "Item 11",
-      "location": "A6 R2"
-    },
-    {
-      "item": "Item 12",
-      "location": "A6 R4"
     }
   ]
 }

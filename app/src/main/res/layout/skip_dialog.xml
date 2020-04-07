@@ -23,7 +23,6 @@
             android:layout_height="wrap_content"
             android:gravity="center"
             android:padding="15dp"
-            android:singleLine="true"
             android:text="@string/_skip_item"
             android:textSize="16sp"
             android:textStyle="bold" />

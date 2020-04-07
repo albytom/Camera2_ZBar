@@ -4,9 +4,9 @@
     android:id="@+id/topLayout"
     android:layout_width="wrap_content"
     android:layout_height="wrap_content"
+    android:layout_margin="10dp"
     android:background="@android:color/transparent"
     android:keepScreenOn="true"
-    android:padding="10dp"
     tools:ignore="MissingDefaultResource">
 
     <LinearLayout
@@ -21,9 +21,9 @@
             android:id="@+id/title_tv"
             android:layout_width="wrap_content"
             android:layout_height="wrap_content"
-            android:gravity="center"
+            android:gravity="start"
             android:padding="15dp"
-            android:text="@string/_pick_up_pending"
+            android:text="@string/list_empty"
             android:textSize="16sp"
             android:textStyle="bold" />
 

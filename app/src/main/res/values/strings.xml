@@ -43,4 +43,5 @@
     <string name="no">No</string>
     <string name="_pick_up_pending">Do you want to pick-up the pending items?</string>
     <string name="_skip_item">Do you want to skip</string>
+    <string name="list_empty">Your list is empty. Do you want to get a new list?</string>
 </resources>

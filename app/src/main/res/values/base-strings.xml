@@ -16,7 +16,7 @@
 -->
 
 <resources>
-    <string name="app_name">ZBar Camera2</string>
+    <string name="app_name">PickItApp</string>
     <string name="intro_message">
         <![CDATA[
         

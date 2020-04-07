@@ -527,7 +527,11 @@ public class Camera2BasicFragment extends Fragment
         mBarcodeRectDrawView = view.findViewById(R.id.draw_rect_view);
         mZbarDataList = new ArrayList<ZbarData>();
         mDataStore = DataStore.getInstance();
-        mItemDataArrayList = mDataStore.getItemDataArrayList();
+        if (mDataStore.getItemDataPickedList().size() < 1) {
+            mItemDataArrayList = mDataStore.getItemDataArrayList();
+        } else {
+            mItemDataArrayList = mDataStore.getPendingItems();
+        }
 
         if(mItemDataArrayList.size() > 1){
             nextBtn.setText(getResources().getString(R.string.next));
@@ -1087,25 +1091,44 @@ public class Camera2BasicFragment extends Fragment
     }
 
     private void nextButtonClick() {
-        if (position <= mItemDataArrayList.size() - 1) {
-            ItemData itemData = mItemDataArrayList.get(position);
-            if (!itemData.isItemFound() && mZbarDataList.size() > 0) {
-                itemData.setItemContent(mZbarDataList.get(index).getmData());
-                itemData.setItemFound(true);
-                mItemDataArrayList.set(itemData.getId(), itemData);
-            }
+        setDataToList();
+        if (position < mItemDataArrayList.size() - 1) {
             if (position < mItemDataArrayList.size() - 1) {
                 position++;
                 setItemData(position);
             }
         } else {
-            mDataStore.setItemDataPickedList(mItemDataArrayList);
             Intent intent = new Intent(getContext(), HomeActivity.class);
             intent.putExtra("data", "data");
             startActivity(intent);
             getActivity().finish();
         }
         mZbarDataList.clear();
+    }
+
+    private void setDataToList() {
+        ItemData itemData = mItemDataArrayList.get(position);
+        if (!itemData.isItemFound()) {
+            if (mZbarDataList.size() > 0) {
+                itemData.setItemContent(mZbarDataList.get(index).getmData());
+                itemData.setItemFound(true);
+            }
+            setDataToLocalList(itemData);
+            if(mDataStore.hasItemDataPickedList(itemData)){
+                mDataStore.setItemDataPickedList(itemData);
+            }else{
+                mDataStore.addItemDataPickedList(itemData);
+            }
+        }
+
+    }
+
+    private void setDataToLocalList(ItemData itemData) {
+        for(int j = 0; j < mItemDataArrayList.size(); j++) {
+            if(mItemDataArrayList.get(j).getId() == itemData.getId()) {
+                mItemDataArrayList.set(j, itemData);
+            }
+        }
     }
 
     private void setAutoFlash(CaptureRequest.Builder requestBuilder) {
@@ -1567,7 +1590,7 @@ public class Camera2BasicFragment extends Fragment
     }
 
     /**
-     * Dialog to show barcode and type
+     * Dialog to show skip item
      */
     private void showDialog_SkipItem(String item) {
                 mBarcodeDialog = new Dialog(getActivity());
