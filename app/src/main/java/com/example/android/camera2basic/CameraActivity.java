@@ -52,7 +52,7 @@ public class CameraActivity extends AppCompatActivity {
         GlobalConstants.REAL_SCR_HEIGHT = displayMetrics.heightPixels;
         GlobalConstants.REAL_SCR_WIDTH = displayMetrics.widthPixels;
         float density = displayMetrics.densityDpi;
-        Log.e("Density", " densityDpi: "+ density + " W: "+GlobalConstants.REAL_SCR_WIDTH + " H: " + GlobalConstants.REAL_SCR_HEIGHT);
+        Log.e("Density", " densityDpi: " + density + " W: " + GlobalConstants.REAL_SCR_WIDTH + " H: " + GlobalConstants.REAL_SCR_HEIGHT);
     }
 
     @Override

@@ -58,6 +58,7 @@ import android.support.v4.content.ContextCompat;
 import android.util.Log;
 import android.util.Size;
 import android.util.SparseIntArray;
+import android.view.Gravity;
 import android.view.LayoutInflater;
 import android.view.Surface;
 import android.view.TextureView;
@@ -428,6 +429,9 @@ public class Camera2BasicFragment extends Fragment
     private CaptureRequest.Builder mCaptureRequestBuilder;
     private Surface mSurface;
     private int position = 0;
+    private Toast mToast;
+
+    /* */
 
     /**
      * Shows a {@link Toast} on the UI thread.
@@ -533,9 +537,9 @@ public class Camera2BasicFragment extends Fragment
             mItemDataArrayList = mDataStore.getPendingItems();
         }
 
-        if(mItemDataArrayList.size() > 1){
+        if (mItemDataArrayList.size() > 1) {
             nextBtn.setText(getResources().getString(R.string.next));
-        }else{
+        } else {
             nextBtn.setText(getResources().getString(R.string.skip));
         }
 
@@ -599,9 +603,9 @@ public class Camera2BasicFragment extends Fragment
         locTv.setText(mItemDataArrayList.get(pos).getItemLoc());
         bCodeTv.setText(mItemDataArrayList.get(pos).getItemContent());
         isFoundCv.setChecked(mItemDataArrayList.get(pos).isItemFound());
-        if(mItemDataArrayList.get(pos).getItemContent()!=null){
+        if (mItemDataArrayList.get(pos).getItemContent() != null) {
             nextBtn.setText(getResources().getString(R.string.next));
-        }else{
+        } else {
             nextBtn.setText(getResources().getString(R.string.skip));
         }
     }
@@ -1083,7 +1087,7 @@ public class Camera2BasicFragment extends Fragment
             case R.id.next_btn:
                 if (mZbarDataList.size() > 0 || mItemDataArrayList.get(position).isItemFound()) {
                     nextButtonClick();
-                }else{
+                } else {
                     showDialog_SkipItem(mItemDataArrayList.get(position).getItemName());
                 }
                 break;
@@ -1114,9 +1118,9 @@ public class Camera2BasicFragment extends Fragment
                 itemData.setItemFound(true);
             }
             setDataToLocalList(itemData);
-            if(mDataStore.hasItemDataPickedList(itemData)){
+            if (mDataStore.hasItemDataPickedList(itemData)) {
                 mDataStore.setItemDataPickedList(itemData);
-            }else{
+            } else {
                 mDataStore.addItemDataPickedList(itemData);
             }
         }
@@ -1124,8 +1128,8 @@ public class Camera2BasicFragment extends Fragment
     }
 
     private void setDataToLocalList(ItemData itemData) {
-        for(int j = 0; j < mItemDataArrayList.size(); j++) {
-            if(mItemDataArrayList.get(j).getId() == itemData.getId()) {
+        for (int j = 0; j < mItemDataArrayList.size(); j++) {
+            if (mItemDataArrayList.get(j).getId() == itemData.getId()) {
                 mItemDataArrayList.set(j, itemData);
             }
         }
@@ -1233,6 +1237,9 @@ public class Camera2BasicFragment extends Fragment
             public void run() {
                 bCodeTv.setText(data);
                 nextBtn.setText(getResources().getString(R.string.next));
+                showToastResult(mItemDataArrayList.get(position).getItemName() + " picked: " + data);
+                //ToastHelper.showToast(getActivity(), mItemDataArrayList.get(position).getItemName() + " picked: " + data, ToastHelper.LENGTH_SHORT);
+
             }
         }));
     }
@@ -1243,10 +1250,10 @@ public class Camera2BasicFragment extends Fragment
         for (String number : numbers) {
             numbersInt.add(Integer.valueOf(number));
         }
-        float l = (numbersInt.get(0) + GlobalConstants.SCR_WIDTH) * GlobalConstants.SCR_WIDTH_RATIO;
-        float t = (numbersInt.get(1) + GlobalConstants.SCR_HEIGHT) * GlobalConstants.SCR_HEIGHT_RATIO;
-        float r = (numbersInt.get(2) + GlobalConstants.SCR_WIDTH) * GlobalConstants.SCR_WIDTH_RATIO;
-        float b = (numbersInt.get(3) + GlobalConstants.SCR_HEIGHT) * GlobalConstants.SCR_HEIGHT_RATIO;
+        float l = ((numbersInt.get(0) + GlobalConstants.SCR_WIDTH) * GlobalConstants.SCR_WIDTH_RATIO) - 10;
+        float t = ((numbersInt.get(1) + GlobalConstants.SCR_HEIGHT) * GlobalConstants.SCR_HEIGHT_RATIO) - 10;
+        float r = ((numbersInt.get(2) + GlobalConstants.SCR_WIDTH) * GlobalConstants.SCR_WIDTH_RATIO) + 10;
+        float b = ((numbersInt.get(3) + GlobalConstants.SCR_HEIGHT) * GlobalConstants.SCR_HEIGHT_RATIO) + 10;
         Log.e("Density", "Rect: Width: " + (r - l) + " Height: " + (b - t));
         Log.e("Density", " W: " + GlobalConstants.REAL_SCR_WIDTH + " H: " + GlobalConstants.REAL_SCR_HEIGHT);
         Log.e(TAG, "l: " + l + " t: " + t + " r:" + r + " b: " + b);
@@ -1593,31 +1600,31 @@ public class Camera2BasicFragment extends Fragment
      * Dialog to show skip item
      */
     private void showDialog_SkipItem(String item) {
-                mBarcodeDialog = new Dialog(getActivity());
-                mBarcodeDialog.setContentView(R.layout.skip_dialog);
-                TextView titleTV = mBarcodeDialog.findViewById(R.id.title_tv);
-                titleTV.setText(getResources().getString(R.string._skip_item)+ " " + item + " ?");
-                TextView yesTv = mBarcodeDialog.findViewById(R.id.yes_tv);
-                TextView noTv = mBarcodeDialog.findViewById(R.id.no_tv);
-                    yesTv.setOnClickListener(new View.OnClickListener() {
+        mBarcodeDialog = new Dialog(getActivity());
+        mBarcodeDialog.setContentView(R.layout.skip_dialog);
+        TextView titleTV = mBarcodeDialog.findViewById(R.id.title_tv);
+        titleTV.setText(getResources().getString(R.string._skip_item) + " " + item + " ?");
+        TextView yesTv = mBarcodeDialog.findViewById(R.id.yes_tv);
+        TextView noTv = mBarcodeDialog.findViewById(R.id.no_tv);
+        yesTv.setOnClickListener(new View.OnClickListener() {
+            @Override
+            public void onClick(View v) {
+                getActivity().runOnUiThread(new Runnable() {
                     @Override
-                    public void onClick(View v) {
-                        getActivity().runOnUiThread(new Runnable() {
-                            @Override
-                            public void run() {
-                                nextButtonClick();
-                                mBarcodeDialog.dismiss();
-                            }
-                        });
-                    }
-                });
-                noTv.setOnClickListener(new View.OnClickListener() {
-                    @Override
-                    public void onClick(View v) {
+                    public void run() {
+                        nextButtonClick();
                         mBarcodeDialog.dismiss();
                     }
                 });
-                mBarcodeDialog.show();
+            }
+        });
+        noTv.setOnClickListener(new View.OnClickListener() {
+            @Override
+            public void onClick(View v) {
+                mBarcodeDialog.dismiss();
+            }
+        });
+        mBarcodeDialog.show();
     }
 
     /**
@@ -1686,4 +1693,24 @@ public class Camera2BasicFragment extends Fragment
             e.printStackTrace();
         }
     }
+
+    private void showToastResult(String msg) {
+        // Get your custom_toast.xml ayout
+        LayoutInflater inflater = getLayoutInflater();
+
+        View layout = inflater.inflate(R.layout.toast_result,
+                (ViewGroup) getActivity().findViewById(R.id.custom_toast_layout_id));
+
+        // set a message
+        TextView text = (TextView) layout.findViewById(R.id.text);
+        text.setText(msg);
+
+        // Toast...
+        mToast = new Toast(getActivity());
+        mToast.setGravity(Gravity.CENTER_HORIZONTAL, 0, 120);
+        mToast.setDuration(Toast.LENGTH_LONG);
+        mToast.setView(layout);
+        mToast.show();
+    }
+
 }
