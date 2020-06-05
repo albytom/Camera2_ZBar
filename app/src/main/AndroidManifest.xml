@@ -17,9 +17,11 @@
 
 <manifest xmlns:android="http://schemas.android.com/apk/res/android"
     package="com.example.android.camera2basic">
+    <uses-feature android:glEsVersion="0x00020000" />
 
     <uses-permission android:name="android.permission.CAMERA" />
     <uses-permission android:name="android.permission.WRITE_EXTERNAL_STORAGE" />
+    <uses-permission android:name="android.permission.INTERNET"/>
 
     <uses-feature android:name="android.hardware.camera" />
     <uses-feature android:name="android.hardware.camera.autofocus" />
@@ -27,9 +29,11 @@
     <application android:allowBackup="true"
         android:label="@string/app_name"
         android:icon="@drawable/ic_launcher"
-        android:theme="@style/MaterialTheme">
+        android:theme="@style/MaterialTheme"
+        android:launchMode="singleTask"
+        android:supportsRtl="false">
 
-        <activity android:name=".LoginActivity"
+        <activity android:name="com.example.android.camera2basic.UserDefinedTargets.UserDefinedTargets"
             android:screenOrientation="sensorLandscape"
                   android:label="@string/app_name">
             <intent-filter>
@@ -37,7 +41,11 @@
                 <category android:name="android.intent.category.LAUNCHER" />
             </intent-filter>
         </activity>
+        <!--<activity android:name="com.example.android.camera2basic.UserDefinedTargets.UserDefinedTargets"
+            android:screenOrientation="sensorLandscape"/>-->
         <activity android:name=".HomeActivity"
+            android:screenOrientation="sensorLandscape"/>
+        <activity android:name=".LoginActivity"
             android:screenOrientation="sensorLandscape"/>
         <activity android:name=".CameraActivity"
             android:screenOrientation="sensorLandscape"/>

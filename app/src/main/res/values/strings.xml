@@ -44,4 +44,33 @@
     <string name="_pick_up_pending">Do you want to pick-up the pending items?</string>
     <string name="_skip_item">Do you want to skip</string>
     <string name="list_empty">Your list is empty. Do you want to get a new list?</string>
+
+    <string name="INIT_ERROR">Error</string>
+    <string name="INIT_ERROR_DEVICE_NOT_SUPPORTED">Failed to initialize Vuforia Engine. This device is not supported.</string>
+    <string name="INIT_ERROR_NO_CAMERA_ACCESS">Failed to initialize Vuforia Engine. Camera not accessible</string>
+    <string name="INIT_ERROR_TRACKERS_NOT_INITIALIZED">This device may not be supported. For a list of supported devices please see https://library.vuforia.com/articles/Solution/ground-plane-supported-devices.html</string>
+    <string name="INIT_LICENSE_ERROR_MISSING_KEY">Vuforia Engine App key is missing. Please get a valid key, by logging into your account at developer.vuforia.com and creating a new project.</string>
+    <string name="INIT_LICENSE_ERROR_INVALID_KEY">Invalid Key used. Please make sure you are using a valid Vuforia Engine App Key.</string>
+    <string name="INIT_LICENSE_ERROR_NO_NETWORK_TRANSIENT">Unable to contact server. Please try again later.</string>
+    <string name="INIT_LICENSE_ERROR_NO_NETWORK_PERMANENT">No network available. Please make sure you are connected to the Internet.</string>
+    <string name="INIT_LICENSE_ERROR_CANCELED_KEY">This app license key has been canceled and may no longer be used. Please get a new license key.</string>
+    <string name="INIT_LICENSE_ERROR_PRODUCT_TYPE_MISMATCH">Vuforia Engine App key is not valid for this product. Please get a valid key, by logging into your account at developer.vuforia.com and choosing the right product type during project creation.</string>
+    <string name="INIT_LICENSE_ERROR_UNKNOWN_ERROR">Failed to initialize Vuforia Engine.</string>
+    <string name="INIT_OBJECT_DATASET_NOT_FOUND_TITLE">Database not found</string>
+    <string name="INIT_OBJECT_DATASET_NOT_FOUND">Please scan an object and load a database</string>
+
+    <string name="menu_versions">VERSIONS</string>
+    <string name="version_vuforia">Vuforia Engine v</string>
+    <string name="version_android">Android API level</string>
+
+    <string name="content_desc_camera_button">Camera Button</string>
+
+    <string name="instruct_relocalize">Point back to previously seen area and rescan to relocalize.</string>
+    <string name="button_OK">OK</string>
+    <string name="target_quality_error_title">Low Quality Image</string>
+    <string name="target_quality_error_desc">The image has very little detail, please try another.</string>
+    <string name="feature_user_targets">User Defined Targets</string>
+
+    <string name="menu_device_tracker">Device Tracker</string>
+    <string name="menu_back">Vuforia Engine Samples</string>
 </resources>

@@ -7,9 +7,13 @@
 set(JSON_BuildTests OFF CACHE INTERNAL "")
 
 #Added 2 path definitions to support 20160825 additions
-set(pathToProject /home/albert/StudioProjects/Camera2_ZBar)
-set(pathToOpenCv /home/albert/StudioProjects/OpenCV-android-sdk)
-set(pathToZbar /home/albert/StudioProjects/android-zbar-sdk/zbar/src/main/jniLibs)
+#set(pathToProject /home/albert/StudioProjects/Camera2_ZBar)
+#set(pathToOpenCv /home/albert/StudioProjects/OpenCV-android-sdk)
+#set(pathToZbar /home/albert/StudioProjects/android-zbar-sdk/zbar/src/main/jniLibs)
+#For Windows
+set(pathToProject C:/Users/AlberDominic/Documents/Android_StPro/BarcodeHub/Camera2_ZBar)
+set(pathToOpenCv C:/Users/AlberDominic/Documents/Android_StPro/BarcodeHub/OpenCV-android-sdk)
+set(pathToZbar C:/Users/AlberDominic/Documents/Android_StPro/BarcodeHub/android-zbar-sdk/zbar/src/main/jniLibs)
 
 
 #Added by the IDE on project create
@@ -23,8 +27,9 @@ set(CMAKE_CXX_FLAGS "${CMAKE_CXX_FLAGS} -std=gnu++11")
 include_directories(${pathToOpenCv}/sdk/native/jni/include)
 
 #Additional ZBar support
-include_directories(/home/albert/StudioProjects/ZBar/include)
-
+#include_directories(/home/albert/StudioProjects/ZBar/include)
+#For Windows
+include_directories(C:/Users/AlberDominic/Documents/Android_StPro/BarcodeHub/ZBar/include)
 
 #Added by IDE on project create
 add_library( deblur-lib SHARED src/main/cpp/deblur.cpp )

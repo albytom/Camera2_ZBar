@@ -46,6 +46,12 @@ android {
     defaultConfig {
         minSdkVersion 23
         targetSdkVersion 28
+
+        ndk {
+            // Default ABI list for this app, can be over-ridden by providing an abiList property
+            // e.g. gradle -PabiList=x86 clean assembleDebug
+            abiFilters ((project.findProperty('abiList') ?: 'armeabi-v7a, arm64-v8a, x86').split(/,\s*/))
+        }
     }
 
     compileOptions {
@@ -82,12 +88,19 @@ android {
     }
     sourceSets {
         main {
-            jniLibs.srcDirs = ['/home/albert/StudioProjects/Camera2_ZBar/app/src/main/jniLibs']
+            jniLibs.srcDirs = ['C:/Users/AlberDominic/Documents/Android_StPro/BarcodeHub/Camera2_ZBar/app/src/main/jniLibs']
         }
+    }
+    sourceSets.main {
+        jni.srcDirs = []
+        jniLibs.srcDir "src/main/vufLib"
     }
     externalNativeBuild {
         cmake {
             path "CMakeLists.txt"
         }
     }
+}
+dependencies {
+    implementation files("src/main/Vuforia/Vuforia.jar")
 }
