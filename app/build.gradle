@@ -75,6 +75,7 @@ android {
         }
 
     }
+
     defaultConfig {
         ndk {
             ldLibs "log"
@@ -82,7 +83,7 @@ android {
     }
     sourceSets {
         main {
-            jniLibs.srcDirs = ['/home/albert/StudioProjects/Camera2_ZBar/app/src/main/jniLibs']
+            jniLibs.srcDirs = ['C:/Users/Albert/Documents/Android_Studio_Projects/BarcodeHub/Camera2_ZBar/app/src/main/jniLibs']
         }
     }
     externalNativeBuild {

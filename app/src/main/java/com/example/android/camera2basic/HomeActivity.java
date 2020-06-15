@@ -110,6 +110,7 @@ public class HomeActivity extends AppCompatActivity {
     private void goToLogin() {
         Intent intent = new Intent(HomeActivity.this, LoginActivity.class);
         startActivity(intent);
+        finish();
     }
 
     /**
@@ -128,6 +129,7 @@ public class HomeActivity extends AppCompatActivity {
                     public void run() {
                         Intent intent = new Intent(HomeActivity.this, CameraActivity.class);
                         startActivity(intent);
+                        finish();
                         mPickPendingDialog.dismiss();
                     }
                 });

@@ -308,7 +308,7 @@ public class Camera2BasicFragment extends Fragment
             //displayBarcodeOld(reader.acquireNextImage());
             //printBarcodeToConsole(reader.acquireNextImage());
             Image pImage = reader.acquireNextImage();
-            if (mCapCounter == 8) {
+            if (mCapCounter == 7) {
                 //mZbarDataList = new ArrayList<>();
                 printBarcodeToConsole(pImage);
                 mCapCounter = 0;
@@ -742,7 +742,11 @@ public class Camera2BasicFragment extends Fragment
             if (!mCameraOpenCloseLock.tryAcquire(2500, TimeUnit.MILLISECONDS)) {
                 throw new RuntimeException("Time out waiting to lock camera opening.");
             }
-            manager.openCamera(mCameraId, mStateCallback, mBackgroundHandler);
+            if (mCameraId!=null) {
+                manager.openCamera(mCameraId, mStateCallback, mBackgroundHandler);
+            }else{
+                onResume();
+            }
         } catch (CameraAccessException e) {
             e.printStackTrace();
         } catch (InterruptedException e) {
@@ -1220,10 +1224,13 @@ public class Camera2BasicFragment extends Fragment
                 if (!result[i + 1].equals(mResult)) {
                     RectF rect = stringToRect(result[i + 2]);
                     mZbarDataList.add(new ZbarData(result[i + 1], result[i], rect));
-                    setBarcodeData(result[i + 1]);
-
                     mBarcodeRectDrawView.setBarcodeRect(rect);
+
+                    if (rect.contains(GlobalConstants.REAL_SCR_WIDTH / 2, GlobalConstants.REAL_SCR_HEIGHT / 2)) {
+                        setBarcodeData(result[i + 1]);
+                    }
                 }
+                Log.e("processZbar", "REAL_SCR_HEIGHT: " + GlobalConstants.REAL_SCR_HEIGHT / 2 + " REAL_SCR_WIDTH: " + GlobalConstants.REAL_SCR_WIDTH / 2);
                 Log.e("processZbar", "Type: " + result[i] + " Data: " + result[i + 1] + " Loc: " + result[i + 2]);
             }
             //showDialog_BarcodeFound();
@@ -1396,7 +1403,7 @@ public class Camera2BasicFragment extends Fragment
 
     private void initZoom() {
         try {
-            //if (null == mCameraId) return;
+            if (null == mCameraId) return;
             CameraManager manager = (CameraManager) getActivity().getSystemService(Context.CAMERA_SERVICE);
             CameraCharacteristics characteristics = manager.getCameraCharacteristics(mCameraId);
             mZoom = new Zoom(characteristics);
@@ -1695,6 +1702,10 @@ public class Camera2BasicFragment extends Fragment
     }
 
     private void showToastResult(String msg) {
+
+        if (mToast != null) {
+            mToast.cancel();
+        }
         // Get your custom_toast.xml ayout
         LayoutInflater inflater = getLayoutInflater();
 
@@ -1708,7 +1719,7 @@ public class Camera2BasicFragment extends Fragment
         // Toast...
         mToast = new Toast(getActivity());
         mToast.setGravity(Gravity.CENTER_HORIZONTAL, 0, 120);
-        mToast.setDuration(Toast.LENGTH_LONG);
+        mToast.setDuration(Toast.LENGTH_SHORT);
         mToast.setView(layout);
         mToast.show();
     }
