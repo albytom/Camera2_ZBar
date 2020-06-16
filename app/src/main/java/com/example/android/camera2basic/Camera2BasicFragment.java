@@ -69,6 +69,7 @@ import android.widget.CheckBox;
 import android.widget.TextView;
 import android.widget.Toast;
 
+import com.example.android.camera2basic.UserDefinedTargets.UserDefinedTargets;
 import com.example.android.camera2basic.data.BarcodeFormat;
 import com.example.android.camera2basic.data.DataStore;
 import com.example.android.camera2basic.data.ItemData;
@@ -117,7 +118,7 @@ public class Camera2BasicFragment extends Fragment
     private float mZoom_level = 0;
     private TextView zoom1, zoom2, zoom3, bCodeTv, itemTv, locTv;
     CheckBox isFoundCv;
-    private Button prevBtn, nextBtn;
+    private Button prevBtn, nextBtn, showBtn;
 
     private Bitmap mBitmap;
     private int[] mPixels;
@@ -129,6 +130,9 @@ public class Camera2BasicFragment extends Fragment
     String mResult = null;
     int mCount = 0;
     private static int imgCount = 0;
+
+    private String mItemSize;
+    private String mItemColor;
 
     static {
         ORIENTATIONS.append(Surface.ROTATION_0, 90);
@@ -430,6 +434,8 @@ public class Camera2BasicFragment extends Fragment
     private Surface mSurface;
     private int position = 0;
     private Toast mToast;
+    private String mItemName;
+    private String mItemLoc;
 
     /* */
 
@@ -527,6 +533,8 @@ public class Camera2BasicFragment extends Fragment
         prevBtn.setOnClickListener(this);
         nextBtn = view.findViewById(R.id.next_btn);
         nextBtn.setOnClickListener(this);
+        showBtn = view.findViewById(R.id.show_btn);
+        showBtn.setOnClickListener(this);
         mTextureView = view.findViewById(R.id.texture);
         mBarcodeRectDrawView = view.findViewById(R.id.draw_rect_view);
         mZbarDataList = new ArrayList<ZbarData>();
@@ -599,8 +607,12 @@ public class Camera2BasicFragment extends Fragment
     }
 
     private void setItemData(int pos) {
-        itemTv.setText(mItemDataArrayList.get(pos).getItemName());
-        locTv.setText(mItemDataArrayList.get(pos).getItemLoc());
+        mItemSize = mItemDataArrayList.get(pos).getItemSize();
+        mItemColor = mItemDataArrayList.get(pos).getItemColor();
+        mItemName = mItemDataArrayList.get(pos).getItemName();
+        mItemLoc = mItemDataArrayList.get(pos).getItemLoc();
+        itemTv.setText(mItemName);
+        locTv.setText(mItemLoc);
         bCodeTv.setText(mItemDataArrayList.get(pos).getItemContent());
         isFoundCv.setChecked(mItemDataArrayList.get(pos).isItemFound());
         if (mItemDataArrayList.get(pos).getItemContent() != null) {
@@ -1091,6 +1103,9 @@ public class Camera2BasicFragment extends Fragment
                     showDialog_SkipItem(mItemDataArrayList.get(position).getItemName());
                 }
                 break;
+            case R.id.show_btn:
+                showButtonClick();
+                break;
         }
     }
 
@@ -1108,6 +1123,15 @@ public class Camera2BasicFragment extends Fragment
             getActivity().finish();
         }
         mZbarDataList.clear();
+    }
+    private void showButtonClick(){
+        Intent intent = new Intent(getContext(), UserDefinedTargets.class);
+        intent.putExtra("color", mItemColor);
+        intent.putExtra("size", mItemSize);
+        intent.putExtra("name", mItemName);
+        intent.putExtra("loc", mItemLoc);
+        startActivity(intent);
+       // getActivity().finish();
     }
 
     private void setDataToList() {

@@ -9,13 +9,20 @@ countries.
 
 package com.example.android.camera2basic.UserDefinedTargets;
 
+import android.Manifest;
+import android.annotation.SuppressLint;
 import android.app.AlertDialog;
 import android.content.DialogInterface;
+import android.content.Intent;
 import android.content.pm.ActivityInfo;
+import android.content.pm.PackageManager;
 import android.content.res.Configuration;
 import android.graphics.Color;
 import android.os.Bundle;
 import android.os.Handler;
+import android.support.annotation.NonNull;
+import android.support.v4.app.ActivityCompat;
+import android.support.v4.content.ContextCompat;
 import android.util.DisplayMetrics;
 import android.util.Log;
 import android.view.GestureDetector;
@@ -23,6 +30,8 @@ import android.view.MotionEvent;
 import android.view.View;
 import android.view.ViewGroup;
 import android.view.ViewGroup.LayoutParams;
+import android.widget.Button;
+import android.widget.CheckBox;
 import android.widget.RelativeLayout;
 import android.widget.TextView;
 
@@ -46,7 +55,6 @@ import com.vuforia.ObjectTracker;
 import com.vuforia.PositionalDeviceTracker;
 import com.vuforia.State;
 import com.vuforia.Trackable;
-import com.vuforia.TrackableList;
 import com.vuforia.TrackableResult;
 import com.vuforia.Tracker;
 import com.vuforia.TrackerManager;
@@ -66,7 +74,7 @@ import java.util.Vector;
  * For the low-level Vuforia lifecycle code, check out SampleApplicationSession.java
  */
 public class UserDefinedTargets extends SampleActivityBase implements
-        SampleApplicationControl, SampleAppMenuInterface {
+        SampleApplicationControl, SampleAppMenuInterface, View.OnClickListener {
     private static final String LOGTAG = "UserDefinedTargets";
 
     private SampleApplicationSession vuforiaAppSession;
@@ -113,21 +121,64 @@ public class UserDefinedTargets extends SampleActivityBase implements
 
     private boolean mIsDroidDevice = false;
     private Trackable mTrackable;
-
+    private String mItemName;
+    private String mItemColor;
+    private float mItemSize;
+    private String mItemLoc;
+    private TextView itemTv, locTv;
+    CheckBox isFoundCv;
+    private Button backButton;
 
     @Override
     protected void onCreate(Bundle savedInstanceState) {
         Log.d(LOGTAG, "onCreate");
         super.onCreate(savedInstanceState);
 
+        Intent vIntent = getIntent();
+
+        mItemName = vIntent.getStringExtra("name");
+        mItemColor = vIntent.getStringExtra("color");
+        mItemSize = Float.parseFloat(String.valueOf(vIntent.getStringExtra("size")));
+        mItemLoc = vIntent.getStringExtra("loc" );
+
+        if (ContextCompat.checkSelfPermission(UserDefinedTargets.this, Manifest.permission.CAMERA) != PackageManager.PERMISSION_GRANTED) {
+
+            ActivityCompat.requestPermissions(UserDefinedTargets.this, new String[] { Manifest.permission.CAMERA, Manifest.permission.WRITE_EXTERNAL_STORAGE }, 0);
+        }
+            onPermissionGranted();
+        itemTv = findViewById(R.id.i_title_tv);
+        locTv = findViewById(R.id.i_loc_tv);
+        isFoundCv = findViewById(R.id.item_found);
+        itemTv.setText(mItemName);
+        locTv.setText(mItemLoc);
+        isFoundCv.setVisibility(View.INVISIBLE);
+        backButton = findViewById(R.id.back_btn);
+        backButton.setOnClickListener(this);
+
+        onCameraClick();
+    }
+
+    @Override
+    public void onClick(View pView) {
+        switch (pView.getId()) {
+            /*case R.id.scan_btn:
+                takePicture();
+                break;*/
+            case R.id.back_btn:
+                this.finish();
+                break;
+        }
+    }
+
+    private void onPermissionGranted() {
         vuforiaAppSession = new SampleApplicationSession(this);
 
         vuforiaAppSession
-                .initAR(this, ActivityInfo.SCREEN_ORIENTATION_PORTRAIT);
+                .initAR(this, ActivityInfo.SCREEN_ORIENTATION_SENSOR_LANDSCAPE);
 
         // Load any sample specific textures:
         mTextures = new Vector<>();
-        loadTextures();
+        loadTextures(mItemColor);
 
         mGestureDetector = new GestureDetector(this, new GestureListener());
 
@@ -174,6 +225,8 @@ public class UserDefinedTargets extends SampleActivityBase implements
     }
 
 
+
+
     private class GestureListener extends
             GestureDetector.SimpleOnGestureListener {
         // Used to set autofocus one second after a manual focus is triggered
@@ -212,12 +265,21 @@ public class UserDefinedTargets extends SampleActivityBase implements
 
 
     // Load specific textures from the APK, which we will later use for rendering.
-    private void loadTextures() {
-        mTextures.add(Texture.loadTextureFromApk("brown_paper.jpg",
+    // Load specific textures from the APK, which we will later use for rendering.
+    private void loadTextures(String texture) {
+        if(mTextures!=null){
+            mTextures.clear();
+        }
+        mTextures.add(Texture.loadTextureFromApk(texture,
                 getAssets()));
     }
 
+    // Set size of object, which we will later use for rendering.
+    private void setSize(float pSize) {
+        mItemSize = pSize;
+    }
 
+    @SuppressLint("SourceLockedOrientationActivity")
     @Override
     protected void onResume() {
         Log.d(LOGTAG, "onResume");
@@ -227,8 +289,8 @@ public class UserDefinedTargets extends SampleActivityBase implements
 
         // This is needed for some Droid devices to force portrait
         if (mIsDroidDevice) {
-            setRequestedOrientation(ActivityInfo.SCREEN_ORIENTATION_LANDSCAPE);
-            setRequestedOrientation(ActivityInfo.SCREEN_ORIENTATION_PORTRAIT);
+            setRequestedOrientation(ActivityInfo.SCREEN_ORIENTATION_SENSOR_LANDSCAPE);
+            setRequestedOrientation(ActivityInfo.SCREEN_ORIENTATION_SENSOR_LANDSCAPE);
         }
 
         vuforiaAppSession.onResume();
@@ -336,6 +398,7 @@ public class UserDefinedTargets extends SampleActivityBase implements
 
         mRenderer = new UserDefinedTargetRenderer(this, vuforiaAppSession);
         mRenderer.setTextures(mTextures);
+        mRenderer.setSize(mItemSize);
         mGlView.setRenderer(mRenderer);
         mGlView.setPreserveEGLContextOnPause(true);
 
@@ -372,10 +435,10 @@ public class UserDefinedTargets extends SampleActivityBase implements
                 .findViewById(R.id.loading_layout);
 
         RelativeLayout topbarLayout = mUILayout.findViewById(R.id.topbar_layout);
-        topbarLayout.setVisibility(View.VISIBLE);
+        topbarLayout.setVisibility(View.INVISIBLE);
 
-        TextView title = mUILayout.findViewById(R.id.topbar_title);
-        title.setText(getText(R.string.feature_user_targets));
+        /*TextView title = mUILayout.findViewById(R.id.topbar_title);
+        title.setText(getText(R.string.feature_user_targets));*/
 
         mSettingsAdditionalViews.add(topbarLayout);
 
@@ -405,6 +468,25 @@ public class UserDefinedTargets extends SampleActivityBase implements
             startBuild();
         }
     }
+    public void onCameraClick() {
+        final Handler handler = new Handler();
+        handler.postDelayed(new Runnable() {
+            @Override
+            public void run() {
+                // Do something after 5s = 5000ms
+                if (isUserDefinedTargetsRunning()) {
+                    loadingDialogHandler.sendEmptyMessage(LoadingDialogHandler.SHOW_LOADING_DIALOG);
+
+                    // Builds the new target
+                    startBuild();
+                }else{
+                    onCameraClick();
+                }
+            }
+        }, 2000);
+
+
+    }
 
 
     Texture createTexture(String nName) {
@@ -425,7 +507,7 @@ public class UserDefinedTargets extends SampleActivityBase implements
     // Initialize UI
     private void initializeBuildTargetModeViews() {
         mBottomBar.setVisibility(View.VISIBLE);
-        mCameraButton.setVisibility(View.VISIBLE);
+        /*mCameraButton.setVisibility(View.VISIBLE);*/
     }
 
 
@@ -979,5 +1061,21 @@ public class UserDefinedTargets extends SampleActivityBase implements
                 }
             }
         });
+    }
+
+    @Override
+    public void onRequestPermissionsResult(int requestCode, @NonNull String[] permissions, @NonNull int[] grantResults) {
+        // Begin monitoring for Aruba Beacon-based Campaign events
+        super.onRequestPermissionsResult(requestCode, permissions, grantResults);
+
+        if (requestCode == 0) {
+            if (grantResults.length > 0 && grantResults[0] == PackageManager.PERMISSION_GRANTED
+                    && grantResults[1] == PackageManager.PERMISSION_GRANTED) {
+                    Log.e(LOGTAG, "requestCode: " + requestCode);
+                //onPermissionGranted();
+            }
+        }
+
+
     }
 }

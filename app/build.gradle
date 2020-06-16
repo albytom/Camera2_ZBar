@@ -1,4 +1,8 @@
-
+apply plugin: 'com.android.application'
+repositories {
+    jcenter()
+    google()
+}
 buildscript {
     repositories {
         google()
@@ -9,11 +13,6 @@ buildscript {
     dependencies {
         classpath 'com.android.tools.build:gradle:3.6.1'
     }
-}
-apply plugin: 'com.android.application'
-repositories {
-    jcenter()
-    google()
 }
 
 dependencies {
@@ -40,12 +39,19 @@ List<String> dirs = [
 
 android {
     compileSdkVersion 28
-
     buildToolsVersion "28.0.3"
 
+    sourceSets.main {
+        jni.srcDirs = []
+        jniLibs.srcDir "C:/Users/Albert/Documents/Android_Studio_Projects/BarCodeHub/vuforia-sdk-android-9-1-7/build/lib/"
+    }
+
     defaultConfig {
+        applicationId "com.example.android.camera2basic"
         minSdkVersion 23
         targetSdkVersion 28
+        versionCode 1
+        versionName "1.0"
 
         ndk {
             // Default ABI list for this app, can be over-ridden by providing an abiList property
@@ -88,13 +94,10 @@ android {
     }
     sourceSets {
         main {
-            jniLibs.srcDirs = ['C:/Users/AlberDominic/Documents/Android_StPro/BarcodeHub/Camera2_ZBar/app/src/main/jniLibs']
+            jniLibs.srcDirs = ['C:/Users/Albert/Documents/Android_Studio_Projects/BarcodeHub/Camera2_ZBar/app/src/main/jniLibs']
         }
     }
-    sourceSets.main {
-        jni.srcDirs = []
-        jniLibs.srcDir "src/main/vufLib"
-    }
+
     externalNativeBuild {
         cmake {
             path "CMakeLists.txt"

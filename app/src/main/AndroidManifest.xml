@@ -22,6 +22,7 @@
     <uses-permission android:name="android.permission.CAMERA" />
     <uses-permission android:name="android.permission.WRITE_EXTERNAL_STORAGE" />
     <uses-permission android:name="android.permission.INTERNET"/>
+    <uses-permission android:name="android.permission.ACCESS_NETWORK_STATE" />
 
     <uses-feature android:name="android.hardware.camera" />
     <uses-feature android:name="android.hardware.camera.autofocus" />
@@ -33,7 +34,7 @@
         android:launchMode="singleTask"
         android:supportsRtl="false">
 
-        <activity android:name="com.example.android.camera2basic.UserDefinedTargets.UserDefinedTargets"
+        <activity android:name=".LoginActivity"
             android:screenOrientation="sensorLandscape"
                   android:label="@string/app_name">
             <intent-filter>
@@ -41,12 +42,13 @@
                 <category android:name="android.intent.category.LAUNCHER" />
             </intent-filter>
         </activity>
-        <!--<activity android:name="com.example.android.camera2basic.UserDefinedTargets.UserDefinedTargets"
-            android:screenOrientation="sensorLandscape"/>-->
+        <activity android:name="com.example.android.camera2basic.UserDefinedTargets.UserDefinedTargets"
+            android:screenOrientation="sensorLandscape"
+            android:launchMode="singleTask"/>
         <activity android:name=".HomeActivity"
             android:screenOrientation="sensorLandscape"/>
-        <activity android:name=".LoginActivity"
-            android:screenOrientation="sensorLandscape"/>
+        <!--<activity android:name=".LoginActivity"
+            android:screenOrientation="sensorLandscape"/>-->
         <activity android:name=".CameraActivity"
             android:screenOrientation="sensorLandscape"/>
     </application>

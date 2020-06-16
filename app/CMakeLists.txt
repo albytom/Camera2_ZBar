@@ -11,9 +11,9 @@ set(JSON_BuildTests OFF CACHE INTERNAL "")
 #set(pathToOpenCv /home/albert/StudioProjects/OpenCV-android-sdk)
 #set(pathToZbar /home/albert/StudioProjects/android-zbar-sdk/zbar/src/main/jniLibs)
 #For Windows
-set(pathToProject C:/Users/AlberDominic/Documents/Android_StPro/BarcodeHub/Camera2_ZBar)
-set(pathToOpenCv C:/Users/AlberDominic/Documents/Android_StPro/BarcodeHub/OpenCV-android-sdk)
-set(pathToZbar C:/Users/AlberDominic/Documents/Android_StPro/BarcodeHub/android-zbar-sdk/zbar/src/main/jniLibs)
+set(pathToProject C:/Users/Albert/Documents/Android_Studio_Projects/BarcodeHub/Camera2_ZBar)
+set(pathToOpenCv C:/Users/Albert/Documents/Android_Studio_Projects/BarcodeHub/OpenCV-android-sdk)
+set(pathToZbar C:/Users/Albert/Documents/Android_Studio_Projects/BarcodeHub/android-zbar-sdk/zbar/src/main/jniLibs)
 
 
 #Added by the IDE on project create
@@ -29,7 +29,7 @@ include_directories(${pathToOpenCv}/sdk/native/jni/include)
 #Additional ZBar support
 #include_directories(/home/albert/StudioProjects/ZBar/include)
 #For Windows
-include_directories(C:/Users/AlberDominic/Documents/Android_StPro/BarcodeHub/ZBar/include)
+include_directories(C:/Users/Albert/Documents/Android_Studio_Projects/BarcodeHub/ZBar/include)
 
 #Added by IDE on project create
 add_library( deblur-lib SHARED src/main/cpp/deblur.cpp )
@@ -39,19 +39,21 @@ add_library( lib_opencv SHARED IMPORTED )
 
 add_library( lib_zbar SHARED IMPORTED )
 add_library( lib_iconv SHARED IMPORTED )
+add_library( lib_vuforia SHARED IMPORTED )
 
 
 #Addition suggested by Bruno Alexandre Krinski 20160825
 set_target_properties(lib_opencv PROPERTIES IMPORTED_LOCATION ${pathToProject}/app/src/main/jniLibs/${ANDROID_ABI}/libopencv_java3.so)
 set_target_properties(lib_zbar PROPERTIES IMPORTED_LOCATION ${pathToZbar}/${ANDROID_ABI}/libzbar.so)
 set_target_properties(lib_iconv PROPERTIES IMPORTED_LOCATION ${pathToZbar}/${ANDROID_ABI}/libiconv.so)
+set_target_properties(lib_vuforia PROPERTIES IMPORTED_LOCATION ${pathToProject}/app/src/main/jniLibs/${ANDROID_ABI}/libVuforia.so)
 
 #Added by IDE on project create
 find_library( log-lib log )
 
 #Added by IDE on project create, Removed and replace with additional parameter suggested by Bruno Alexandre Krinski 20160825
 #target_link_libraries( native-lib $\{log-lib} )
-target_link_libraries( deblur-lib ${log-lib} lib_opencv lib_zbar lib_iconv )
+target_link_libraries( deblur-lib ${log-lib} lib_opencv lib_zbar lib_iconv lib_vuforia)
 
 
 

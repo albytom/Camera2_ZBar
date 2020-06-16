@@ -35,6 +35,8 @@
     <string name="prev">PREV</string>
     <string name="skip">SKIP</string>
     <string name="next">NEXT</string>
+    <string name="show">SHOW</string>
+    <string name="back">BACK</string>
     <string name="q_login">Please select your account to start picking.</string>
     <string name="john">John Doe</string>
     <string name="jane">Jane Dale</string>

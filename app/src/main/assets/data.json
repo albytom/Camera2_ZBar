@@ -2,19 +2,27 @@
   "Data": [
     {
       "item": "Item 1",
-      "location": "A1 R2"
+      "location": "A1 R2",
+      "size": "0.010f",
+      "color": "brown.png"
     },
     {
       "item": "Item 2",
-      "location": "A2 R3"
+      "location": "A2 R3",
+      "size": "0.030f",
+      "color": "white.png"
     },
     {
       "item": "Item 3",
-      "location": "A3 R1"
+      "location": "A3 R1",
+      "size": "0.050f",
+      "color": "brown.png"
     },
     {
       "item": "Item 4",
-      "location": "A3 R2"
+      "location": "A3 R2",
+      "size": "0.030f",
+      "color": "brown.png"
     }
   ]
 }

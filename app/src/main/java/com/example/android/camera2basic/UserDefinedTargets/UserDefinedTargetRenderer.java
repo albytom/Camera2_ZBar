@@ -37,11 +37,10 @@ import java.util.Vector;
 
 /**
  * The renderer class for the UserDefinedTargets sample.
- *
+ * <p>
  * In the renderFrame() function you can render augmentations to display over the Target
  */
-public class UserDefinedTargetRenderer extends SampleRendererBase implements SampleAppRendererControl
-{
+public class UserDefinedTargetRenderer extends SampleRendererBase implements SampleAppRendererControl {
     private static final String LOGTAG = "UDTRenderer";
 
     private int shaderProgramID;
@@ -50,7 +49,7 @@ public class UserDefinedTargetRenderer extends SampleRendererBase implements Sam
     private int mvpMatrixHandle;
     private int texSampler2DHandle;
 
-    private static final float kObjectScale = .020f;
+    private static float kObjectScale = .020f;
 
     // Object to be rendered
     //private Teapot mTeapot;
@@ -59,10 +58,9 @@ public class UserDefinedTargetRenderer extends SampleRendererBase implements Sam
     private final UserDefinedTargets mActivity;
 
     private boolean mIsTargetCurrentlyTracked = false;
-    
+
     UserDefinedTargetRenderer(UserDefinedTargets activity,
-        SampleApplicationSession session)
-    {
+                              SampleApplicationSession session) {
         mActivity = activity;
         vuforiaAppSession = session;
 
@@ -73,8 +71,7 @@ public class UserDefinedTargetRenderer extends SampleRendererBase implements Sam
     }
 
 
-    public void setActive(boolean active)
-    {
+    public void setActive(boolean active) {
         mSampleAppRenderer.setActive(active);
     }
 
@@ -83,11 +80,10 @@ public class UserDefinedTargetRenderer extends SampleRendererBase implements Sam
     // This function is called from the SampleAppRenderer by using the RenderingPrimitives views.
     // The state is owned by SampleAppRenderer which is controlling its lifecycle.
     // NOTE: State should not be cached outside this method.
-    public void renderFrame(State state, float[] projectionMatrix)
-    {
+    public void renderFrame(State state, float[] projectionMatrix) {
         // Renders video background replacing Renderer.DrawVideoBackground()
         mSampleAppRenderer.renderVideoBackground();
-        
+
         GLES20.glEnable(GLES20.GL_DEPTH_TEST);
         GLES20.glEnable(GLES20.GL_CULL_FACE);
 
@@ -99,15 +95,13 @@ public class UserDefinedTargetRenderer extends SampleRendererBase implements Sam
         Matrix44F modelMatrix;
 
         // Read device pose from the state and create a corresponding view matrix (inverse of the device pose)
-        if (state.getDeviceTrackableResult() != null)
-        {
+        if (state.getDeviceTrackableResult() != null) {
             int statusInfo = state.getDeviceTrackableResult().getStatusInfo();
             int trackerStatus = state.getDeviceTrackableResult().getStatus();
 
             mActivity.checkForRelocalization(statusInfo);
 
-            if (trackerStatus != TrackableResult.STATUS.NO_POSE)
-            {
+            if (trackerStatus != TrackableResult.STATUS.NO_POSE) {
                 modelMatrix = Tool.convertPose2GLMatrix(state.getDeviceTrackableResult().getPose());
 
                 // We transpose here because Matrix44FInverse returns a transposed matrix
@@ -121,27 +115,24 @@ public class UserDefinedTargetRenderer extends SampleRendererBase implements Sam
         setIsTargetCurrentlyTracked(trackableResultList);
 
         // Iterate through trackable results and render any augmentations
-        for (TrackableResult trackableResult : trackableResultList)
-        {
+        for (TrackableResult trackableResult : trackableResultList) {
             modelMatrix = Tool.convertPose2GLMatrix(trackableResult.getPose());
 
-            if (trackableResult.isOfType(ImageTargetResult.getClassType()) && trackableResult.getStatus() != TrackableResult.STATUS.LIMITED)
-            {
+            if (trackableResult.isOfType(ImageTargetResult.getClassType()) && trackableResult.getStatus() != TrackableResult.STATUS.LIMITED) {
                 // Renders the augmentation
-               renderModel(projectionMatrix, devicePoseMatrix.getData(), modelMatrix.getData());
+                renderModel(projectionMatrix, devicePoseMatrix.getData(), modelMatrix.getData());
 
-               SampleUtils.checkGLError("UserDefinedTargets renderFrame");
+                SampleUtils.checkGLError("UserDefinedTargets renderFrame");
             }
         }
-        
+
         GLES20.glDisable(GLES20.GL_DEPTH_TEST);
-        
+
         Renderer.getInstance().end();
     }
 
 
-    private void renderModel(float[] projectionMatrix, float[] viewMatrix, float[] modelMatrix)
-    {
+    private void renderModel(float[] projectionMatrix, float[] viewMatrix, float[] modelMatrix) {
         float[] modelViewProjection = new float[16];
 
         // Apply local transformation to our model
@@ -187,72 +178,71 @@ public class UserDefinedTargetRenderer extends SampleRendererBase implements Sam
 
 
     @Override
-    public void initRendering()
-    {
+    public void initRendering() {
         Log.d(LOGTAG, "initRendering");
-        
+
         //mTeapot = new Teapot();
         mCubeObject = new CubeObject();
-        
+
         // Define clear color
         GLES20.glClearColor(0.0f, 0.0f, 0.0f, Vuforia.requiresAlpha() ? 0.0f
-            : 1.0f);
-        
+                : 1.0f);
+
         // Now generate the OpenGL texture objects and add settings
-        for (Texture t : mTextures)
-        {
+        for (Texture t : mTextures) {
             GLES20.glGenTextures(1, t.mTextureID, 0);
             GLES20.glBindTexture(GLES20.GL_TEXTURE_2D, t.mTextureID[0]);
             GLES20.glTexParameterf(GLES20.GL_TEXTURE_2D,
-                GLES20.GL_TEXTURE_MIN_FILTER, GLES20.GL_LINEAR);
+                    GLES20.GL_TEXTURE_MIN_FILTER, GLES20.GL_LINEAR);
             GLES20.glTexParameterf(GLES20.GL_TEXTURE_2D,
-                GLES20.GL_TEXTURE_MAG_FILTER, GLES20.GL_LINEAR);
+                    GLES20.GL_TEXTURE_MAG_FILTER, GLES20.GL_LINEAR);
             GLES20.glTexImage2D(GLES20.GL_TEXTURE_2D, 0, GLES20.GL_RGBA,
-                t.mWidth, t.mHeight, 0, GLES20.GL_RGBA,
-                GLES20.GL_UNSIGNED_BYTE, t.mData);
+                    t.mWidth, t.mHeight, 0, GLES20.GL_RGBA,
+                    GLES20.GL_UNSIGNED_BYTE, t.mData);
         }
-        
+
         shaderProgramID = SampleUtils.createProgramFromShaderSrc(
-            CubeShaders.CUBE_MESH_VERTEX_SHADER,
-            CubeShaders.CUBE_MESH_FRAGMENT_SHADER);
-        
+                CubeShaders.CUBE_MESH_VERTEX_SHADER,
+                CubeShaders.CUBE_MESH_FRAGMENT_SHADER);
+
         vertexHandle = GLES20.glGetAttribLocation(shaderProgramID,
-            "vertexPosition");
+                "vertexPosition");
         textureCoordHandle = GLES20.glGetAttribLocation(shaderProgramID,
-            "vertexTexCoord");
+                "vertexTexCoord");
         mvpMatrixHandle = GLES20.glGetUniformLocation(shaderProgramID,
-            "modelViewProjectionMatrix");
+                "modelViewProjectionMatrix");
         texSampler2DHandle = GLES20.glGetUniformLocation(shaderProgramID,
-            "texSampler2D");
+                "texSampler2D");
     }
 
 
-    public void updateRenderingPrimitives()
-    {
+    public void updateRenderingPrimitives() {
         mSampleAppRenderer.updateRenderingPrimitives();
     }
-    
-    
-    public void setTextures(Vector<Texture> textures)
-    {
+
+
+    public void setTextures(Vector<Texture> textures) {
+        if (mTextures != null) {
+            mTextures.clear();
+        }
         mTextures = textures;
     }
 
-    private void setIsTargetCurrentlyTracked(TrackableResultList trackableResultList)
-    {
-        for(TrackableResult result : trackableResultList)
-        {
+    public void setSize(float pSize) {
+        kObjectScale = pSize;
+    }
+
+    private void setIsTargetCurrentlyTracked(TrackableResultList trackableResultList) {
+        for (TrackableResult result : trackableResultList) {
             // Check the tracking status for result types
             // other than DeviceTrackableResult. ie: ImageTargetResult
-            if (!result.isOfType(DeviceTrackableResult.getClassType()))
-            {
+            if (!result.isOfType(DeviceTrackableResult.getClassType())) {
                 int currentStatus = result.getStatus();
                 int currentStatusInfo = result.getStatusInfo();
 
                 // The target is currently being tracked if the status is TRACKED|NORMAL
                 if (currentStatus == TrackableResult.STATUS.TRACKED
-                        || currentStatusInfo == TrackableResult.STATUS_INFO.NORMAL)
-                {
+                        || currentStatusInfo == TrackableResult.STATUS_INFO.NORMAL) {
                     mIsTargetCurrentlyTracked = true;
                     return;
                 }
@@ -263,8 +253,7 @@ public class UserDefinedTargetRenderer extends SampleRendererBase implements Sam
     }
 
 
-    boolean isTargetCurrentlyTracked()
-    {
+    boolean isTargetCurrentlyTracked() {
         return mIsTargetCurrentlyTracked;
     }
 }

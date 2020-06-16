@@ -170,9 +170,11 @@ public class HomeActivity extends AppCompatActivity {
                 Log.d("Details-->", jo_inside.getString("item"));
                 String itemName = jo_inside.getString("item");
                 String itemLoc = jo_inside.getString("location");
+                String itemSize = jo_inside.getString("size");
+                String itemColor = jo_inside.getString("color");
 
                 //Add your values in your `ArrayList` as below:
-                itemDataList.add(new ItemData(i, itemName, itemLoc));
+                itemDataList.add(new ItemData(i, itemName, itemLoc, itemSize, itemColor));
             }
             return itemDataList;
         } catch (JSONException e) {

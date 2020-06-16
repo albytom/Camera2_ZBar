@@ -24,6 +24,9 @@ public abstract class SampleActivityBase extends Activity
     private int mDeviceOrientation;
 
     protected SampleRendererBase mBaseRenderer;
+    /*static {
+        System.loadLibrary("Vuforia");
+    }*/
 
     @Override
     protected void onCreate(Bundle savedInstanceState)
