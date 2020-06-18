@@ -7,6 +7,7 @@ public class DataStore {
     private static DataStore mDataStore;
     private static ArrayList<ItemData> itemDataArrayList;
     private static ArrayList<ItemData> itemDataPickedList;
+    private static int curPosition;
 
     private DataStore() {
         //ToDo here
@@ -21,20 +22,27 @@ public class DataStore {
         return mDataStore;
     }
 
+    public int getCurPosition() {
+        return curPosition;
+    }
+
+    public void setCurPosition(int pCurPosition) {
+        curPosition = pCurPosition;
+    }
+
     public static ArrayList<ItemData> getItemDataArrayList(){
         return itemDataArrayList;
     }
-    public static void setItemDataArrayList(ArrayList<ItemData> data){
+    public static void setDataArrayList(ArrayList<ItemData> data){
         itemDataArrayList = data;
+    }
+    public static void setItemDataArrayList(ItemData data){
+        itemDataArrayList.set(data.getId(), data);
     }
     public static ArrayList<ItemData> getItemDataPickedList(){
         return itemDataPickedList;
     }
-    public static void setItemDataPickedList(ArrayList<ItemData> data){
-        for(ItemData itemData: data){
-            itemDataPickedList.add(itemData.getId(), itemData);
-        }
-    }
+
     public static void setItemDataPickedList(ItemData data){
             itemDataPickedList.set(data.getId(), data);
     }
@@ -56,8 +64,8 @@ public class DataStore {
 
 
     public static boolean isItemPending(){
-        if (itemDataPickedList.size() > 0) {
-            for(ItemData itemData: itemDataPickedList){
+        if (itemDataArrayList.size() > 0) {
+            for(ItemData itemData: itemDataArrayList){
                 if(!itemData.isItemFound()){
                     return true;
                 }
@@ -67,7 +75,7 @@ public class DataStore {
     }
     public static ArrayList<ItemData> getPendingItems(){
         ArrayList<ItemData> pendingData = new ArrayList<>();
-        for(ItemData itemData: itemDataPickedList){
+        for(ItemData itemData: itemDataArrayList){
             if (!itemData.isItemFound()) {
                 pendingData.add(itemData);
             }

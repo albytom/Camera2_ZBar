@@ -48,7 +48,7 @@ public class HomeActivity extends AppCompatActivity {
         mRecyclerView.setLayoutManager(new GridLayoutManager(this, numberOfColumns));
         if (extras != null) {
             if(extras.getString("data")!=null && extras.getString("data").equals("data")){
-                mItemGridAdapter = new ItemGridAdapter(this, mDataStore.getItemDataPickedList());
+                mItemGridAdapter = new ItemGridAdapter(this, mDataStore.getItemDataArrayList());
                 mRecyclerView.setAdapter(mItemGridAdapter);
                 goButton.setText(getResources().getString(R.string.finish));
                 STATUS = getResources().getString(R.string.finish);
@@ -146,7 +146,7 @@ public class HomeActivity extends AppCompatActivity {
 
 
     private void loadDataToGrid() {
-        mDataStore.setItemDataArrayList(getDataFromJSON());
+        mDataStore.setDataArrayList(getDataFromJSON());
         runOnUiThread(new Runnable() {
             @Override
             public void run() {

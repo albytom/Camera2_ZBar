@@ -312,7 +312,7 @@ public class Camera2BasicFragment extends Fragment
             //displayBarcodeOld(reader.acquireNextImage());
             //printBarcodeToConsole(reader.acquireNextImage());
             Image pImage = reader.acquireNextImage();
-            if (mCapCounter == 8) {
+            if (mCapCounter == 7) {
                 //mZbarDataList = new ArrayList<>();
                 printBarcodeToConsole(pImage);
                 mCapCounter = 0;
@@ -539,15 +539,17 @@ public class Camera2BasicFragment extends Fragment
         mBarcodeRectDrawView = view.findViewById(R.id.draw_rect_view);
         mZbarDataList = new ArrayList<ZbarData>();
         mDataStore = DataStore.getInstance();
+        position = mDataStore.getCurPosition();
         setDataFromLocal();
     }
 
     private void setDataFromLocal() {
-        if (mDataStore.getItemDataPickedList().size() < 1) {
+        mItemDataArrayList = mDataStore.getItemDataArrayList();
+        /*if (mDataStore.getItemDataArrayList().size() < 1) {
             mItemDataArrayList = mDataStore.getItemDataArrayList();
         } else {
             mItemDataArrayList = mDataStore.getPendingItems();
-        }
+        }*/
 
         if (mItemDataArrayList.size() > 1) {
             nextBtn.setText(getResources().getString(R.string.next));
@@ -555,7 +557,7 @@ public class Camera2BasicFragment extends Fragment
             nextBtn.setText(getResources().getString(R.string.skip));
         }
 
-        setItemData(position);
+        setItemData(mDataStore.getCurPosition());
     }
 
     @Override
@@ -568,6 +570,7 @@ public class Camera2BasicFragment extends Fragment
     public void onResume() {
         super.onResume();
         startBackgroundThread();
+        position = mDataStore.getCurPosition();
         setDataFromLocal();
         // When the screen is turned off and turned back on, the SurfaceTexture is already
         // available, and "onSurfaceTextureAvailable" will not be called. In that case, we can open
@@ -1097,14 +1100,15 @@ public class Camera2BasicFragment extends Fragment
             case R.id.prev_btn:
                 if (position > 0) {
                     position--;
-                    setItemData(position);
+                    mDataStore.setCurPosition(position);
+                    setItemData(mDataStore.getCurPosition());
                 }
                 break;
             case R.id.next_btn:
-                if (mZbarDataList.size() > 0 || mItemDataArrayList.get(position).isItemFound()) {
+                if (mZbarDataList.size() > 0 || mItemDataArrayList.get(mDataStore.getCurPosition()).isItemFound()) {
                     nextButtonClick();
                 } else {
-                    showDialog_SkipItem(mItemDataArrayList.get(position).getItemName());
+                    showDialog_SkipItem(mItemDataArrayList.get(mDataStore.getCurPosition()).getItemName());
                 }
                 break;
             case R.id.show_btn:
@@ -1118,7 +1122,8 @@ public class Camera2BasicFragment extends Fragment
         if (position < mItemDataArrayList.size() - 1) {
             if (position < mItemDataArrayList.size() - 1) {
                 position++;
-                setItemData(position);
+                mDataStore.setCurPosition(position);
+                setItemData(mDataStore.getCurPosition());
             }
         } else {
             Intent intent = new Intent(getContext(), HomeActivity.class);
@@ -1139,18 +1144,19 @@ public class Camera2BasicFragment extends Fragment
     }
 
     private void setDataToList() {
-        ItemData itemData = mItemDataArrayList.get(position);
+        ItemData itemData = mItemDataArrayList.get(mDataStore.getCurPosition());
         if (!itemData.isItemFound()) {
             if (mZbarDataList.size() > 0) {
                 itemData.setItemContent(mZbarDataList.get(index).getmData());
                 itemData.setItemFound(true);
             }
             setDataToLocalList(itemData);
-            if (mDataStore.hasItemDataPickedList(itemData)) {
+            mDataStore.setItemDataArrayList(itemData);
+            /*if (mDataStore.hasItemDataPickedList(itemData)) {
                 mDataStore.setItemDataPickedList(itemData);
             } else {
                 mDataStore.addItemDataPickedList(itemData);
-            }
+            }*/
         }
 
     }
@@ -1248,7 +1254,9 @@ public class Camera2BasicFragment extends Fragment
                 if (!result[i + 1].equals(mResult)) {
                     RectF rect = stringToRect(result[i + 2]);
                     mZbarDataList.add(new ZbarData(result[i + 1], result[i], rect));
-                    setBarcodeData(result[i + 1]);
+                    if (rect.contains(GlobalConstants.REAL_SCR_WIDTH / 2, GlobalConstants.REAL_SCR_HEIGHT / 2)) {
+                        setBarcodeData(result[i + 1]);
+                    }
 
                     mBarcodeRectDrawView.setBarcodeRect(rect);
                 }
@@ -1265,7 +1273,7 @@ public class Camera2BasicFragment extends Fragment
             public void run() {
                 bCodeTv.setText(data);
                 nextBtn.setText(getResources().getString(R.string.next));
-                showToastResult(mItemDataArrayList.get(position).getItemName() + " picked: " + data);
+                showToastResult(mItemDataArrayList.get(mDataStore.getCurPosition()).getItemName() + " picked: " + data);
                 //ToastHelper.showToast(getActivity(), mItemDataArrayList.get(position).getItemName() + " picked: " + data, ToastHelper.LENGTH_SHORT);
 
             }
@@ -1424,7 +1432,7 @@ public class Camera2BasicFragment extends Fragment
 
     private void initZoom() {
         try {
-            //if (null == mCameraId) return;
+            if (null == mCameraId) return;
             CameraManager manager = (CameraManager) getActivity().getSystemService(Context.CAMERA_SERVICE);
             CameraCharacteristics characteristics = manager.getCameraCharacteristics(mCameraId);
             mZoom = new Zoom(characteristics);
@@ -1723,6 +1731,10 @@ public class Camera2BasicFragment extends Fragment
     }
 
     private void showToastResult(String msg) {
+
+        if (mToast != null) {
+            mToast.cancel();
+        }
         // Get your custom_toast.xml ayout
         LayoutInflater inflater = getLayoutInflater();
 
@@ -1736,7 +1748,7 @@ public class Camera2BasicFragment extends Fragment
         // Toast...
         mToast = new Toast(getActivity());
         mToast.setGravity(Gravity.CENTER_HORIZONTAL, 0, 120);
-        mToast.setDuration(Toast.LENGTH_LONG);
+        mToast.setDuration(Toast.LENGTH_SHORT);
         mToast.setView(layout);
         mToast.show();
     }

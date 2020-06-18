@@ -125,7 +125,7 @@ public class UserDefinedTargets extends SampleActivityBase implements
     private String mItemColor;
     private float mItemSize;
     private String mItemLoc;
-    private TextView itemTv, locTv;
+    private TextView itemTv, locTv, bCodeTv;
     CheckBox isFoundCv;
     private Button backButton;
 
@@ -151,6 +151,8 @@ public class UserDefinedTargets extends SampleActivityBase implements
         isFoundCv = findViewById(R.id.item_found);
         itemTv.setText(mItemName);
         locTv.setText(mItemLoc);
+        bCodeTv = findViewById(R.id.i_content_tv);
+        bCodeTv.setVisibility(View.INVISIBLE);
         isFoundCv.setVisibility(View.INVISIBLE);
         backButton = findViewById(R.id.back_btn);
         backButton.setOnClickListener(this);
