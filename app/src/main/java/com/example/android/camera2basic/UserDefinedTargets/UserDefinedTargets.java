@@ -165,7 +165,7 @@ public class UserDefinedTargets extends SampleActivityBase implements
                 takePicture();
                 break;*/
             case R.id.back_btn:
-                this.finish();
+                onBackPressed();
                 break;
         }
     }
@@ -1075,7 +1075,10 @@ public class UserDefinedTargets extends SampleActivityBase implements
                 //onPermissionGranted();
             }
         }
+    }
 
-
+    @Override
+    public void onBackPressed() {
+        super.onBackPressed();
     }
 }

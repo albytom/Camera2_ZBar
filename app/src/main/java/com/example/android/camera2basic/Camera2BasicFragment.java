@@ -539,6 +539,10 @@ public class Camera2BasicFragment extends Fragment
         mBarcodeRectDrawView = view.findViewById(R.id.draw_rect_view);
         mZbarDataList = new ArrayList<ZbarData>();
         mDataStore = DataStore.getInstance();
+        setDataFromLocal();
+    }
+
+    private void setDataFromLocal() {
         if (mDataStore.getItemDataPickedList().size() < 1) {
             mItemDataArrayList = mDataStore.getItemDataArrayList();
         } else {
@@ -564,7 +568,7 @@ public class Camera2BasicFragment extends Fragment
     public void onResume() {
         super.onResume();
         startBackgroundThread();
-
+        setDataFromLocal();
         // When the screen is turned off and turned back on, the SurfaceTexture is already
         // available, and "onSurfaceTextureAvailable" will not be called. In that case, we can open
         // a camera and start preview from here (otherwise, we wait until the surface is ready in
