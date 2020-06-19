@@ -44,6 +44,7 @@ import com.example.android.camera2basic.UserDefinedTargets.sample.SampleAppTimer
 import com.example.android.camera2basic.UserDefinedTargets.sample.SampleApplicationControl;
 import com.example.android.camera2basic.UserDefinedTargets.sample.SampleApplicationException;
 import com.example.android.camera2basic.UserDefinedTargets.sample.SampleApplicationSession;
+import com.example.android.camera2basic.UserDefinedTargets.utils.Constants;
 import com.example.android.camera2basic.UserDefinedTargets.utils.LoadingDialogHandler;
 import com.example.android.camera2basic.UserDefinedTargets.utils.SampleAppMenuInterface;
 import com.example.android.camera2basic.UserDefinedTargets.utils.SampleApplicationGLView;
@@ -140,6 +141,7 @@ public class UserDefinedTargets extends SampleActivityBase implements
         mItemColor = vIntent.getStringExtra("color");
         mItemSize = Float.parseFloat(String.valueOf(vIntent.getStringExtra("size")));
         mItemLoc = vIntent.getStringExtra("loc" );
+        Constants.CUBOID_RATIO = vIntent.getIntArrayExtra("ratio");
 
         if (ContextCompat.checkSelfPermission(UserDefinedTargets.this, Manifest.permission.CAMERA) != PackageManager.PERMISSION_GRANTED) {
 

@@ -8,13 +8,23 @@ public class ItemData {
     private boolean itemFound;
     private String itemColor;
     private String itemSize;
+    private int [] ratio;
 
-    public ItemData(int id, String itemName, String itemLoc, String pItemSize, String pItemColor) {
+    public ItemData(int id, String itemName, String itemLoc, String pItemSize, String pItemColor, int [] pRatio) {
         this.mId = id;
         this.itemName = itemName;
         this.itemLoc = itemLoc;
         this.itemSize = pItemSize;
         this.itemColor = pItemColor;
+        this.ratio = pRatio;
+    }
+
+    public int[] getRatio() {
+        return ratio;
+    }
+
+    public void setRatio(int[] pRatio) {
+        ratio = pRatio;
     }
 
     public String getItemName() {

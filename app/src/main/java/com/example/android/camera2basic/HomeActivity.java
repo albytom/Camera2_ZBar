@@ -172,9 +172,21 @@ public class HomeActivity extends AppCompatActivity {
                 String itemLoc = jo_inside.getString("location");
                 String itemSize = jo_inside.getString("size");
                 String itemColor = jo_inside.getString("color");
+                // Retrieve number array from JSON object.
+                JSONArray array = jo_inside.optJSONArray("ratio");
+                // Deal with the case of a non-array value.
+                if (array == null) { /*...*/ }
+
+                // Create an int array to accomodate the numbers.
+                int[] ratio = new int[array.length()];
+
+                // Extract numbers from JSON array.
+                for (int j = 0; j < array.length(); ++j) {
+                    ratio[j] = array.optInt(j);
+                }
 
                 //Add your values in your `ArrayList` as below:
-                itemDataList.add(new ItemData(i, itemName, itemLoc, itemSize, itemColor));
+                itemDataList.add(new ItemData(i, itemName, itemLoc, itemSize, itemColor, ratio));
             }
             return itemDataList;
         } catch (JSONException e) {

@@ -3,26 +3,30 @@
     {
       "item": "Item 1",
       "location": "A1 R2",
-      "size": "0.010f",
-      "color": "brown.png"
+      "size": "0.020f",
+      "color": "cardboard_4.png",
+      "ratio":[2,1,2]
     },
     {
       "item": "Item 2",
       "location": "A2 R3",
-      "size": "0.030f",
-      "color": "white.png"
+      "size": "0.025f",
+      "color": "cardboard_2.png",
+      "ratio":[2,1,1]
     },
     {
       "item": "Item 3",
       "location": "A3 R1",
-      "size": "0.050f",
-      "color": "brown.png"
+      "size": "0.030f",
+      "color": "cardboard_3.png",
+      "ratio":[2,1,2]
     },
     {
       "item": "Item 4",
       "location": "A3 R2",
-      "size": "0.030f",
-      "color": "brown.png"
+      "size": "0.025f",
+      "color": "cardboard_5.png",
+      "ratio":[1,1,1]
     }
   ]
 }

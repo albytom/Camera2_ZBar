@@ -436,6 +436,7 @@ public class Camera2BasicFragment extends Fragment
     private Toast mToast;
     private String mItemName;
     private String mItemLoc;
+    private int [] mRatio;
 
     /* */
 
@@ -618,6 +619,7 @@ public class Camera2BasicFragment extends Fragment
         mItemColor = mItemDataArrayList.get(pos).getItemColor();
         mItemName = mItemDataArrayList.get(pos).getItemName();
         mItemLoc = mItemDataArrayList.get(pos).getItemLoc();
+        mRatio = mItemDataArrayList.get(pos).getRatio();
         itemTv.setText(mItemName);
         locTv.setText(mItemLoc);
         bCodeTv.setText(mItemDataArrayList.get(pos).getItemContent());
@@ -1139,6 +1141,7 @@ public class Camera2BasicFragment extends Fragment
         intent.putExtra("size", mItemSize);
         intent.putExtra("name", mItemName);
         intent.putExtra("loc", mItemLoc);
+        intent.putExtra("ratio", mRatio);
         startActivity(intent);
        // getActivity().finish();
     }
