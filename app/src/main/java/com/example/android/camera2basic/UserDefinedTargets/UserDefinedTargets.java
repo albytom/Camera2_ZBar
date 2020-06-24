@@ -75,7 +75,7 @@ import java.util.Vector;
  * For the low-level Vuforia lifecycle code, check out SampleApplicationSession.java
  */
 public class UserDefinedTargets extends SampleActivityBase implements
-        SampleApplicationControl, SampleAppMenuInterface, View.OnClickListener {
+        SampleApplicationControl, View.OnClickListener {
     private static final String LOGTAG = "UserDefinedTargets";
 
     private SampleApplicationSession vuforiaAppSession;
@@ -581,7 +581,7 @@ public class UserDefinedTargets extends SampleActivityBase implements
                     .getImageTargetBuilder();
             if (targetBuilder != null) {
                 if (targetBuilder.getFrameQuality() == ImageTargetBuilder.FRAME_QUALITY.FRAME_QUALITY_LOW) {
-                    showErrorDialogInUIThread();
+                    //showErrorDialogInUIThread();
                 }
 
                 String name;
@@ -845,12 +845,6 @@ public class UserDefinedTargets extends SampleActivityBase implements
 
             mUILayout.setBackgroundColor(Color.TRANSPARENT);
 
-            setSampleAppMenuAdditionalViews();
-            mSampleAppMenu = new SampleAppMenu(this, this,
-                    "User Defined Targets", mGlView, mUILayout,
-                    mSettingsAdditionalViews);
-            setSampleAppMenuSettings();
-
             vuforiaAppSession.startAR();
 
         } else {
@@ -956,72 +950,6 @@ public class UserDefinedTargets extends SampleActivityBase implements
     // Menu options
     private final static int CMD_BACK = -1;
     private final static int CMD_DEVICE_TRACKER = 1;
-
-    // This method sets the additional views to be moved along with the GLView
-    // when opening the menu
-    private void setSampleAppMenuAdditionalViews() {
-        mSettingsAdditionalViews.add(mBottomBar);
-    }
-
-
-    private void setSampleAppMenuSettings() {
-        SampleAppMenuGroup group;
-
-        group = mSampleAppMenu.addGroup("", false);
-        group.addTextItem(getString(R.string.menu_back), -1);
-
-        group = mSampleAppMenu.addGroup("", true);
-        group.addSelectionItem(getString(R.string.menu_device_tracker),
-                CMD_DEVICE_TRACKER, false);
-
-        mSampleAppMenu.attachMenu();
-    }
-
-
-    // In this function you can define the desired behavior for each menu option
-    // Each case corresponds to a menu option
-    @Override
-    public boolean menuProcess(int command) {
-        boolean result = true;
-
-        switch (command) {
-            case CMD_BACK:
-                finish();
-                break;
-
-            case CMD_DEVICE_TRACKER:
-                TrackerManager trackerManager = TrackerManager.getInstance();
-                PositionalDeviceTracker deviceTracker = (PositionalDeviceTracker)
-                        trackerManager.getTracker(PositionalDeviceTracker.getClassType());
-
-                if (deviceTracker != null) {
-                    if (!mDeviceTracker) {
-                        if (!deviceTracker.start()) {
-                            Log.e(LOGTAG, "Failed to start device tracker");
-                            result = false;
-                        } else {
-                            Log.d(LOGTAG, "Successfully started device tracker");
-                        }
-                    } else {
-                        deviceTracker.stop();
-                        clearSampleAppMessage();
-                    }
-                } else {
-                    Log.e(LOGTAG, "Device tracker is null!");
-                    result = false;
-                }
-
-                if (result) {
-                    mDeviceTracker = !mDeviceTracker;
-                } else {
-                    clearSampleAppMessage();
-                }
-
-                break;
-        }
-
-        return result;
-    }
 
 
     public void checkForRelocalization(final int statusInfo) {

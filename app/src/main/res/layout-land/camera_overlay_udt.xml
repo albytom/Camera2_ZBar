@@ -33,7 +33,7 @@
         android:layout_centerHorizontal="true"
         android:text="@string/back"
         android:background="@drawable/button_bg"
-        android:textSize="26sp"
+        android:textSize="24sp"
         android:layout_width="wrap_content"
         android:layout_height="wrap_content"/>
     <include layout="@layout/sample_app_title_bar"/>

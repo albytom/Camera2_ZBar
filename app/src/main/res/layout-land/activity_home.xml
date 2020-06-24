@@ -31,6 +31,6 @@
         android:padding="10dp"
         android:layout_margin="10dp"
         android:text="@string/go"
-        android:textSize="26sp"/>
+        android:textSize="24sp"/>
 
 </RelativeLayout>

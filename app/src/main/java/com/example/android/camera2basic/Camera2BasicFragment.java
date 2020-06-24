@@ -97,6 +97,7 @@ import java.util.Collection;
 import java.util.Collections;
 import java.util.Comparator;
 import java.util.List;
+import java.util.Objects;
 import java.util.concurrent.Semaphore;
 import java.util.concurrent.TimeUnit;
 
@@ -558,7 +559,9 @@ public class Camera2BasicFragment extends Fragment
             nextBtn.setText(getResources().getString(R.string.skip));
         }
 
-        setItemData(mDataStore.getCurPosition());
+        if (mItemDataArrayList.size() > 0) {
+            setItemData(mDataStore.getCurPosition());
+        }
     }
 
     @Override
@@ -763,7 +766,11 @@ public class Camera2BasicFragment extends Fragment
             if (!mCameraOpenCloseLock.tryAcquire(2500, TimeUnit.MILLISECONDS)) {
                 throw new RuntimeException("Time out waiting to lock camera opening.");
             }
-            manager.openCamera(mCameraId, mStateCallback, mBackgroundHandler);
+            if (mCameraId!=null) {
+                manager.openCamera(mCameraId, mStateCallback, mBackgroundHandler);
+            }else{
+                onResume();
+            }
         } catch (CameraAccessException e) {
             e.printStackTrace();
         } catch (InterruptedException e) {
@@ -1265,10 +1272,24 @@ public class Camera2BasicFragment extends Fragment
                 }
                 Log.e("processZbar", "Type: " + result[i] + " Data: " + result[i + 1] + " Loc: " + result[i + 2]);
             }
-            //showDialog_BarcodeFound();
-            //mBarcodeRectDrawView.setBarcodeRect(new RectF(400, 200, 800, 600));
         }
         pImage.close();
+    }
+    private void setBarcodeData(final RectF rect) {
+        Objects.requireNonNull(getActivity()).runOnUiThread(new Thread(new Runnable() {
+            public void run() {
+                mBarcodeRectDrawView.setBarcodeRect(rect);
+            }
+        }));
+    }
+
+
+    private void clearBarcodeData() {
+        Objects.requireNonNull(getActivity()).runOnUiThread(new Thread(new Runnable() {
+            public void run() {
+                mBarcodeRectDrawView.clearScreen();
+            }
+        }));
     }
 
     private void setBarcodeData(final String data) {
