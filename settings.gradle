@@ -1,2 +1,1 @@
-include 'app'
-include ':openCVLibrary349'
+include 'app', ':openCVLibrary349', ':BLE Indoor Positioning'

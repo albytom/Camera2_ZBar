@@ -1652,7 +1652,6 @@ public class Camera2BasicFragment extends Fragment
      * Focus camera on the centre of the screen
      */
     public void handleFocus() {
-
         float x = getScreenWidth() / 2;
         float y = getScreenHeight() / 2;
 
@@ -1702,7 +1701,6 @@ public class Camera2BasicFragment extends Fragment
     }
 
     private void showToastResult(String msg) {
-
         if (mToast != null) {
             mToast.cancel();
         }
@@ -1723,5 +1721,4 @@ public class Camera2BasicFragment extends Fragment
         mToast.setView(layout);
         mToast.show();
     }
-
 }
