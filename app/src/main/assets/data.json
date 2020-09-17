@@ -2,19 +2,23 @@
   "Data": [
     {
       "item": "Item 1",
-      "location": "A1 R2"
+      "location": "A1 R2",
+      "coordinates": [540, 541]
     },
     {
       "item": "Item 2",
-      "location": "A2 R3"
+      "location": "A2 R3",
+      "coordinates": [376, 541]
     },
     {
       "item": "Item 3",
-      "location": "A3 R1"
+      "location": "A3 R1",
+      "coordinates": [557, 153]
     },
     {
       "item": "Item 4",
-      "location": "A3 R2"
+      "location": "A3 R2",
+      "coordinates": [380, 153]
     }
   ]
 }

@@ -185,6 +185,7 @@ public class PathPlanActivity extends AppCompatActivity implements BottomNavigat
 
     @Override
     protected void onActivityResult(int requestCode, int resultCode, Intent data) {
+        super.onActivityResult(requestCode, resultCode, data);
         switch (requestCode) {
             case BluetoothClient.REQUEST_CODE_ENABLE_BLUETOOTH: {
                 if (resultCode == RESULT_OK) {

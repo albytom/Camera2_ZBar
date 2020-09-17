@@ -7,6 +7,7 @@ public class DataStore {
     private static DataStore mDataStore;
     private static ArrayList<ItemData> itemDataArrayList;
     private static ArrayList<ItemData> itemDataPickedList;
+    private static int mPosition = 0;
 
     private DataStore() {
         //ToDo here
@@ -73,6 +74,14 @@ public class DataStore {
             }
         }
         return pendingData;
+    }
+
+    public static int getmPosition(){
+        return mPosition;
+    }
+
+    public static void setmPosition(int position){
+        mPosition = position;
     }
 
     public static void clearData(){

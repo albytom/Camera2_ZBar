@@ -50,11 +50,6 @@ import android.media.ImageReader;
 import android.os.Bundle;
 import android.os.Handler;
 import android.os.HandlerThread;
-import android.support.annotation.NonNull;
-import android.support.v4.app.ActivityCompat;
-import android.support.v4.app.DialogFragment;
-import android.support.v4.app.Fragment;
-import android.support.v4.content.ContextCompat;
 import android.util.Log;
 import android.util.Size;
 import android.util.SparseIntArray;
@@ -68,6 +63,12 @@ import android.widget.Button;
 import android.widget.CheckBox;
 import android.widget.TextView;
 import android.widget.Toast;
+
+import androidx.annotation.NonNull;
+import androidx.core.app.ActivityCompat;
+import androidx.core.content.ContextCompat;
+import androidx.fragment.app.DialogFragment;
+import androidx.fragment.app.Fragment;
 
 import com.example.android.camera2basic.data.BarcodeFormat;
 import com.example.android.camera2basic.data.DataStore;
@@ -543,7 +544,7 @@ public class Camera2BasicFragment extends Fragment
             nextBtn.setText(getResources().getString(R.string.skip));
         }
 
-        setItemData(position);
+        setItemData(mDataStore.getmPosition());
     }
 
     @Override
@@ -1083,16 +1084,16 @@ public class Camera2BasicFragment extends Fragment
                 }
                 break;
             case R.id.prev_btn:
-                if (position > 0) {
-                    position--;
-                    setItemData(position);
+                if (mDataStore.getmPosition() > 0) {
+                    mDataStore.setmPosition(mDataStore.getmPosition() - 1);
+                    setItemData(mDataStore.getmPosition());
                 }
                 break;
             case R.id.next_btn:
-                if (mZbarDataList.size() > 0 || mItemDataArrayList.get(position).isItemFound()) {
+                if (mZbarDataList.size() > 0 || mItemDataArrayList.get(mDataStore.getmPosition()).isItemFound()) {
                     nextButtonClick();
                 } else {
-                    showDialog_SkipItem(mItemDataArrayList.get(position).getItemName());
+                    showDialog_SkipItem(mItemDataArrayList.get(mDataStore.getmPosition()).getItemName());
                 }
                 break;
         }
@@ -1100,10 +1101,10 @@ public class Camera2BasicFragment extends Fragment
 
     private void nextButtonClick() {
         setDataToList();
-        if (position < mItemDataArrayList.size() - 1) {
-            if (position < mItemDataArrayList.size() - 1) {
-                position++;
-                setItemData(position);
+        if (mDataStore.getmPosition() < mItemDataArrayList.size() - 1) {
+            if (mDataStore.getmPosition() < mItemDataArrayList.size() - 1) {
+                mDataStore.setmPosition(mDataStore.getmPosition() + 1);
+                setItemData(mDataStore.getmPosition());
             }
         } else {
             Intent intent = new Intent(getContext(), HomeActivity.class);
@@ -1115,7 +1116,7 @@ public class Camera2BasicFragment extends Fragment
     }
 
     private void setDataToList() {
-        ItemData itemData = mItemDataArrayList.get(position);
+        ItemData itemData = mItemDataArrayList.get(mDataStore.getmPosition());
         if (!itemData.isItemFound()) {
             if (mZbarDataList.size() > 0) {
                 itemData.setItemContent(mZbarDataList.get(index).getmData());
@@ -1244,7 +1245,7 @@ public class Camera2BasicFragment extends Fragment
             public void run() {
                 bCodeTv.setText(data);
                 nextBtn.setText(getResources().getString(R.string.next));
-                showToastResult(mItemDataArrayList.get(position).getItemName() + " picked: " + data);
+                showToastResult(mItemDataArrayList.get(mDataStore.getmPosition()).getItemName() + " picked: " + data);
                 //ToastHelper.showToast(getActivity(), mItemDataArrayList.get(position).getItemName() + " picked: " + data, ToastHelper.LENGTH_SHORT);
 
             }

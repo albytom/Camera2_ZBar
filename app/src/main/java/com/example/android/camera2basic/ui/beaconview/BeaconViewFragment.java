@@ -16,6 +16,8 @@ import androidx.annotation.Nullable;
 import androidx.coordinatorlayout.widget.CoordinatorLayout;
 import androidx.fragment.app.Fragment;
 
+import com.example.android.camera2basic.R;
+import com.example.android.camera2basic.location.AndroidLocationProvider;
 import com.nexenio.bleindoorpositioning.IndoorPositioning;
 import com.nexenio.bleindoorpositioning.ble.advertising.IndoorPositioningAdvertisingPacket;
 import com.nexenio.bleindoorpositioning.ble.beacon.Beacon;
@@ -24,8 +26,6 @@ import com.nexenio.bleindoorpositioning.ble.beacon.BeaconUpdateListener;
 import com.nexenio.bleindoorpositioning.ble.beacon.filter.BeaconFilter;
 import com.nexenio.bleindoorpositioning.ble.beacon.filter.IBeaconFilter;
 import com.nexenio.bleindoorpositioning.location.LocationListener;
-import com.nexenio.bleindoorpositioningdemo.R;
-import com.nexenio.bleindoorpositioningdemo.location.AndroidLocationProvider;
 
 import java.util.ArrayList;
 import java.util.List;

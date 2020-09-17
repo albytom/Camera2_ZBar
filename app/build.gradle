@@ -28,7 +28,7 @@ dependencies {
     
     implementation project(':BLE Indoor Positioning')
 
-    implementation 'androidx.appcompat:appcompat:1.0.2'
+    implementation 'androidx.appcompat:appcompat:1.2.0'
     implementation 'androidx.legacy:legacy-support-v4:1.0.0'
     implementation 'androidx.media:media:1.0.1'
     implementation 'androidx.constraintlayout:constraintlayout:1.1.3'
@@ -38,9 +38,10 @@ dependencies {
 
     implementation "com.polidea.rxandroidble:rxandroidble:1.4.3"
     implementation 'com.opencsv:opencsv:4.6'
-   /* tasks.withType(JavaCompile) {
-        compileTask -> compileTask.dependsOn ndkBuild
-    }*/
+    implementation 'androidx.recyclerview:recyclerview:1.1.0'
+    /* tasks.withType(JavaCompile) {
+         compileTask -> compileTask.dependsOn ndkBuild
+     }*/
 }
 
 // The sample build uses multiple directories to

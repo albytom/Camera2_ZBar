@@ -47,12 +47,12 @@ public class HomeActivity extends AppCompatActivity {
         int numberOfColumns = 4;
         mRecyclerView.setLayoutManager(new GridLayoutManager(this, numberOfColumns));
         if (extras != null) {
-            if(extras.getString("data")!=null && extras.getString("data").equals("data")){
+            if (extras.getString("data") != null && extras.getString("data").equals("data")) {
                 mItemGridAdapter = new ItemGridAdapter(this, mDataStore.getItemDataPickedList());
                 mRecyclerView.setAdapter(mItemGridAdapter);
                 goButton.setText(getResources().getString(R.string.finish));
                 STATUS = getResources().getString(R.string.finish);
-            }else if(extras.getString("name")!=null){
+            } else if (extras.getString("name") != null) {
                 showDialog_LoadData();
             }
         }
@@ -62,7 +62,7 @@ public class HomeActivity extends AppCompatActivity {
             @Override
             public void onClick(View v) {
                 if (STATUS.equalsIgnoreCase(getResources().getString(R.string.go))) {
-                    Intent intent = new Intent(HomeActivity.this, CameraActivity.class);
+                    Intent intent = new Intent(HomeActivity.this, PathPlanActivity.class);
                     startActivity(intent);
                     finish();
                 } else {
@@ -124,10 +124,10 @@ public class HomeActivity extends AppCompatActivity {
         yesTv.setOnClickListener(new View.OnClickListener() {
             @Override
             public void onClick(View v) {
-               runOnUiThread(new Runnable() {
+                runOnUiThread(new Runnable() {
                     @Override
                     public void run() {
-                        Intent intent = new Intent(HomeActivity.this, CameraActivity.class);
+                        Intent intent = new Intent(HomeActivity.this, PathPlanActivity.class);
                         startActivity(intent);
                         finish();
                         mPickPendingDialog.dismiss();
@@ -161,7 +161,7 @@ public class HomeActivity extends AppCompatActivity {
         STATUS = getResources().getString(R.string.go);
     }
 
-    private ArrayList<ItemData> getDataFromJSON(){
+    private ArrayList<ItemData> getDataFromJSON() {
         ArrayList<ItemData> itemDataList = new ArrayList<>();
         try {
             JSONObject obj = new JSONObject(loadJSONFromAsset());
@@ -172,9 +172,23 @@ public class HomeActivity extends AppCompatActivity {
                 Log.d("Details-->", jo_inside.getString("item"));
                 String itemName = jo_inside.getString("item");
                 String itemLoc = jo_inside.getString("location");
+                JSONArray array = jo_inside.optJSONArray("coordinates");
+                // Create an int array to accomodate the numbers.
+                int[] numbers = new int[2];
+                // Deal with the case of a non-array value.
+                if (array == null) {
+                    numbers[0] = 0;
+                    numbers[1] = 0;
+                }
+                // Extract numbers from JSON array.
+                else {
+                    for (int j = 0; j < array.length(); ++j) {
+                        numbers[j] = array.optInt(j);
+                    }
+                }
 
                 //Add your values in your `ArrayList` as below:
-                itemDataList.add(new ItemData(i, itemName, itemLoc));
+                itemDataList.add(new ItemData(i, itemName, itemLoc, numbers));
             }
             return itemDataList;
         } catch (JSONException e) {

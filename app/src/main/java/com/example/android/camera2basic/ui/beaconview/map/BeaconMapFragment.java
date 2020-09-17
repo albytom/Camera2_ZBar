@@ -12,15 +12,15 @@ import android.view.ViewGroup;
 
 import androidx.annotation.CallSuper;
 
+import com.example.android.camera2basic.R;
+import com.example.android.camera2basic.location.AndroidLocationProvider;
+import com.example.android.camera2basic.ui.beaconview.BeaconViewFragment;
 import com.nexenio.bleindoorpositioning.IndoorPositioning;
 import com.nexenio.bleindoorpositioning.ble.beacon.Beacon;
 import com.nexenio.bleindoorpositioning.ble.beacon.BeaconUpdateListener;
 import com.nexenio.bleindoorpositioning.location.Location;
 import com.nexenio.bleindoorpositioning.location.LocationListener;
 import com.nexenio.bleindoorpositioning.location.provider.LocationProvider;
-import com.nexenio.bleindoorpositioningdemo.R;
-import com.nexenio.bleindoorpositioningdemo.location.AndroidLocationProvider;
-import com.nexenio.bleindoorpositioningdemo.ui.beaconview.BeaconViewFragment;
 
 public class BeaconMapFragment extends BeaconViewFragment {
 

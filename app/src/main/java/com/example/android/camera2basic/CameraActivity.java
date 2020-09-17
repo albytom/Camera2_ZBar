@@ -17,9 +17,10 @@
 package com.example.android.camera2basic;
 
 import android.os.Bundle;
-import android.support.v7.app.AppCompatActivity;
 import android.util.DisplayMetrics;
 import android.util.Log;
+
+import androidx.appcompat.app.AppCompatActivity;
 
 import com.example.android.camera2basic.util.GlobalConstants;
 

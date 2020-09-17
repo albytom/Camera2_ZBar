@@ -9,11 +9,13 @@ import android.graphics.RectF;
 import android.util.AttributeSet;
 import android.view.View;
 
+import androidx.appcompat.widget.AppCompatImageView;
+
 import com.example.android.camera2basic.R;
 
 import java.util.ArrayList;
 
-public class BarcodeRectDrawView extends android.support.v7.widget.AppCompatImageView {
+public class BarcodeRectDrawView extends AppCompatImageView {
 
     private ArrayList<RectF> mRectArray;
     private int radius;

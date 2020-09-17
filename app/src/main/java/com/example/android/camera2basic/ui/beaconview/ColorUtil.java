@@ -8,7 +8,8 @@ import androidx.annotation.IntDef;
 import androidx.annotation.NonNull;
 import androidx.core.content.res.ResourcesCompat;
 
-import com.nexenio.bleindoorpositioningdemo.R;
+
+import com.example.android.camera2basic.R;
 
 import java.lang.annotation.Retention;
 

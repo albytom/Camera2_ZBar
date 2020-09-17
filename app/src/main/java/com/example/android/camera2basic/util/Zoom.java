@@ -3,9 +3,10 @@ package com.example.android.camera2basic.util;
 import android.graphics.Rect;
 import android.hardware.camera2.CameraCharacteristics;
 import android.hardware.camera2.CaptureRequest;
-import android.support.annotation.NonNull;
-import android.support.annotation.Nullable;
-import android.support.v4.math.MathUtils;
+
+import androidx.annotation.NonNull;
+import androidx.annotation.Nullable;
+import androidx.core.math.MathUtils;
 
 public class Zoom {
     private static final float DEFAULT_ZOOM_FACTOR = 1.0f;

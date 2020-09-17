@@ -25,6 +25,15 @@ include_directories(${pathToOpenCv}/sdk/native/jni/include)
 #Additional ZBar support
 include_directories(C:/Users/Albert/Documents/Android_Studio_Projects/BarcodeHub/ZBar/include)
 
+#Code from Jasir
+add_library( localize-lib SHARED src/main/cpp/localise.cpp )
+
+add_library( trilateration-lib
+        SHARED
+        src/main/cpp/trilateration.cpp
+        src/main/cpp/beacon.cpp
+        src/main/cpp/test_trilateration.cpp)
+add_library( pathplan-lib SHARED src/main/cpp/pathPlanning.cpp )
 
 #Added by IDE on project create
 add_library( deblur-lib SHARED src/main/cpp/deblur.cpp )
@@ -46,7 +55,10 @@ find_library( log-lib log )
 
 #Added by IDE on project create, Removed and replace with additional parameter suggested by Bruno Alexandre Krinski 20160825
 #target_link_libraries( native-lib $\{log-lib} )
-target_link_libraries( deblur-lib ${log-lib} lib_opencv lib_zbar lib_iconv )
+target_link_libraries( deblur-lib ${log-lib} lib_opencv lib_zbar lib_iconv)
+target_link_libraries( localize-lib ${log-lib} lib_opencv)
+target_link_libraries( trilateration-lib ${log-lib})
+target_link_libraries( pathplan-lib ${log-lib} lib_opencv)
 
 
 
