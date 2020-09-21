@@ -1,7 +1,6 @@
 package com.example.android.camera2basic.ui.beaconview.pathplanning;
 
 import android.content.Context;
-import android.content.Intent;
 import android.graphics.Bitmap;
 import android.graphics.BitmapFactory;
 import android.graphics.Canvas;
@@ -12,15 +11,10 @@ import android.hardware.Sensor;
 import android.hardware.SensorEvent;
 import android.hardware.SensorEventListener;
 import android.hardware.SensorManager;
-import android.hardware.camera2.CameraAccessException;
 import android.os.Bundle;
 import android.os.Handler;
 import android.util.Log;
 import android.view.View;
-import android.view.inputmethod.InputMethodManager;
-import android.widget.AdapterView;
-import android.widget.ArrayAdapter;
-import android.widget.AutoCompleteTextView;
 import android.widget.Button;
 import android.widget.ImageView;
 import android.widget.TextView;
@@ -28,14 +22,17 @@ import android.widget.Toast;
 
 import androidx.annotation.NonNull;
 import androidx.annotation.Nullable;
+import androidx.lifecycle.MutableLiveData;
+import androidx.lifecycle.Observer;
 
-import com.example.android.camera2basic.CameraActivity;
-import com.example.android.camera2basic.HomeActivity;
+import com.example.android.camera2basic.Camera2BasicFragment;
 import com.example.android.camera2basic.R;
+import com.example.android.camera2basic.callback.NavigateCallBackListener;
 import com.example.android.camera2basic.data.DataStore;
 import com.example.android.camera2basic.data.ItemData;
 import com.example.android.camera2basic.ui.beaconview.BeaconViewFragment;
 import com.example.android.camera2basic.ui.beaconview.CvUtil;
+import com.example.android.camera2basic.util.GlobalConstants;
 import com.nexenio.bleindoorpositioning.ble.advertising.AdvertisingPacketUtil;
 import com.nexenio.bleindoorpositioning.ble.beacon.Beacon;
 import com.nexenio.bleindoorpositioning.ble.beacon.BeaconUpdateListener;
@@ -85,17 +82,19 @@ public class BeaconNavigateFragment extends BeaconViewFragment implements View.O
     ArrayList<double[][]> locations = new ArrayList<double[][]>();
     ArrayList<Double> distances = new ArrayList<Double>();
     int[] output_coordinates = null;
-    private double[] localized_position = null;
+    private MutableLiveData<double[]> localized_position = new MutableLiveData<>();
+    private boolean plottedPath = false;
     //  double[][] coordinate_list=new double[][]{{570,304},{114,101},{115,325},{782,406},{460,73},{292,625}};
     double[][] coordinate_list = new double[][]{{81, 107}, {284, 107}, {81, 393}, {273, 393}, {380, 153}, {557, 153}, {376, 541}, {540, 541}};
     double[][] digkistra_coordinates = null;
 
     DataStore mDataStore;
-    ArrayList<ItemData> mItemDataArrayList;
+   //ArrayList<ItemData> mItemDataArrayList;
     private TextView itemTv, locTv;
     private Button scanBtn;
     final Handler handler = new Handler();
     private Runnable mRunnable;
+    private NavigateCallBackListener callBackListener;
 
     public BeaconNavigateFragment() {
         super();
@@ -126,6 +125,14 @@ public class BeaconNavigateFragment extends BeaconViewFragment implements View.O
 
             }
         };
+    }
+
+    @Override
+    public void onActivityCreated(@Nullable Bundle savedInstanceState) {
+        super.onActivityCreated(savedInstanceState);
+        //getActivity() is fully created in onActivityCreated and instanceOf differentiate it between different Activities
+        if (getActivity() instanceof NavigateCallBackListener)
+            callBackListener = (NavigateCallBackListener) getActivity();
     }
 
     @Override
@@ -199,16 +206,16 @@ public class BeaconNavigateFragment extends BeaconViewFragment implements View.O
                     double[] result_pos = optimum.getPoint().toArray();
                     addTolist(result_pos);
                     if (x_list.size() >= 5) {
-                        localized_position = calculateAverageVal();
+                        localized_position.setValue(calculateAverageVal());
                         if (output_coordinates != null) {
                             double[] result = findNearestPixel(result_pos, digkistra_coordinates);
                             if (result[2] < 100.0)
                                 drawPoint(3 * (int) result[0], 3 * (int) result[1]);
                             else
-                                drawPoint(3 * (int) localized_position[0], 3 * (int) localized_position[1]);
+                                drawPoint(3 * (int) localized_position.getValue()[0], 3 * (int) localized_position.getValue()[1]);
 
                         } else
-                            drawPoint(3 * (int) localized_position[0], 3 * (int) localized_position[1]);
+                            drawPoint(3 * (int) localized_position.getValue()[0], 3 * (int) localized_position.getValue()[1]);
 
                         x_list.clear();
                         y_list.clear();
@@ -299,11 +306,11 @@ public class BeaconNavigateFragment extends BeaconViewFragment implements View.O
         scanBtn = view.findViewById(R.id.scan_btn);
         scanBtn.setOnClickListener((View.OnClickListener) this);
         mDataStore = DataStore.getInstance();
-        if (mDataStore.getItemDataPickedList().size() < 1) {
+        /*if (mDataStore.getItemDataPickedList().size() < 1) {
             mItemDataArrayList = mDataStore.getItemDataArrayList();
         } else {
             mItemDataArrayList = mDataStore.getPendingItems();
-        }
+        }*/
         setItemData(mDataStore.getmPosition());
         //tempCanvas.drawBitmap(myBitmap, 0, 0, null);
         // paint = new Paint();
@@ -318,47 +325,44 @@ public class BeaconNavigateFragment extends BeaconViewFragment implements View.O
         path_canvas = new Canvas(path_bitmap);
         tempCanvas.drawBitmap(myBitmap, 0, 0, null);
         //tempCanvas1.drawBitmap(myBitmap, 0, 0, null);
+        localized_position.observe(getActivity(), new Observer() {
+            @Override
+            public void onChanged(Object pO) {
+                if (!plottedPath) {
+                    plotPath();
+                    plottedPath = true;
+                }
+            }
+        });
+    }
 
+    private void loadCameraFragment() {
+        Camera2BasicFragment nextFrag = new Camera2BasicFragment().newInstance();
+        getActivity().getSupportFragmentManager().beginTransaction()
+                .replace(R.id.container, nextFrag, "cameraFragment")
+                .addToBackStack(null)
+                .commit();
+        GlobalConstants.MODE = "cameraFragment";
+    }
+
+    private void plotPath() {
         mRunnable = new Runnable() {
             public void run() {
-                handler.postDelayed(this, 2000);
-                if (localized_position != null) {
-                    double[] result = findNearestPixel(localized_position, coordinate_list);
-                    input_cordinates = new int[]{(int) result[0], (int) result[1], mItemDataArrayList.get(DataStore.getmPosition()).getItem_loc_cord()[0], mItemDataArrayList.get(DataStore.getmPosition()).getItem_loc_cord()[1]};
+                handler.postDelayed(this, 5000);
+                if (localized_position.getValue() != null) {
+                    double[] result = findNearestPixel(localized_position.getValue(), coordinate_list);
+                    input_cordinates = new int[]{(int) result[0], (int) result[1], DataStore.getCurrentItem().getItem_loc_cord()[0], DataStore.getCurrentItem().getItem_loc_cord()[1]};
+                    //input_cordinates = new int[]{mItemDataArrayList.get(DataStore.getmPosition()+1).getItem_loc_cord()[0], mItemDataArrayList.get(DataStore.getmPosition()+1).getItem_loc_cord()[0], mItemDataArrayList.get(DataStore.getmPosition()).getItem_loc_cord()[0], mItemDataArrayList.get(DataStore.getmPosition()).getItem_loc_cord()[1]};
+
                     Log.d("beacon", "distance=" + result[2]);
                     performNavigation(input_cordinates);
                 } else {
                     Toast.makeText(getActivity().getApplicationContext(), "Could not read your current location !!", Toast.LENGTH_SHORT).show();
                 }
+                handler.removeCallbacksAndMessages(null);
             }
         };
         mRunnable.run();
-        /*Go_button.setOnClickListener(new View.OnClickListener() {
-            @Override
-            public void onClick(View view) {
-                if ((start_loc.trim().equalsIgnoreCase("Start") || stop_loc.trim().equalsIgnoreCase("Stop") || (start_loc.trim().equalsIgnoreCase(stop_loc.trim())))) {
-                    Toast.makeText(getActivity().getApplicationContext(), "Please choose correct locations !!", Toast.LENGTH_SHORT).show();
-
-                } else if (start_loc.trim().equalsIgnoreCase("My location")) {
-                    if (localized_position != null) {
-                        double[] result = findNearestPixel(localized_position, coordinate_list);
-                        input_cordinates = new int[]{(int) result[0], (int) result[1], hm_location.get(stop_loc)[0], hm_location.get(stop_loc)[1]};
-                        Log.d("beacon", "distance=" + result[2]);
-                        performNavigation(input_cordinates);
-                    } else {
-                        Toast.makeText(getActivity().getApplicationContext(), "Could not read your current location !!", Toast.LENGTH_SHORT).show();
-                    }
-                } else {
-                    try {
-                        input_cordinates = new int[]{hm_location.get(start_loc)[0], hm_location.get(start_loc)[1], hm_location.get(stop_loc)[0], hm_location.get(stop_loc)[1]};
-                    } catch (NullPointerException e) {
-                        Toast.makeText(getContext(), "Enter valid location", Toast.LENGTH_SHORT).show();
-                        e.printStackTrace();
-                    }
-                    performNavigation(input_cordinates);
-                }
-            }
-        });*/
     }
 
     public double[] findNearestPixel(double[] position, double[][] list) {
@@ -398,19 +402,20 @@ public class BeaconNavigateFragment extends BeaconViewFragment implements View.O
             e.printStackTrace();
         }
     }
+
     @Override
     public void onClick(View view) {
         switch (view.getId()) {
             case R.id.scan_btn:
-                Intent intent = new Intent(getActivity(), CameraActivity.class);
-                startActivity(intent);
+                callBackListener.onNavigateCallBack();
+                //loadCameraFragment();
                 break;
         }
     }
 
     private void setItemData(int pos) {
-        itemTv.setText(mItemDataArrayList.get(pos).getItemName());
-        locTv.setText(mItemDataArrayList.get(pos).getItemLoc());
+        itemTv.setText(DataStore.getCurrentItem().getItemName());
+        locTv.setText(DataStore.getCurrentItem().getItemLoc());
     }
 
 
@@ -453,6 +458,5 @@ public class BeaconNavigateFragment extends BeaconViewFragment implements View.O
         mImageView.setImageDrawable(new BitmapDrawable(getResources(), path_bitmap));
         copy_bmp = path_bitmap;
     }
-
 
 }

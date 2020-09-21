@@ -16,6 +16,7 @@ import androidx.recyclerview.widget.RecyclerView;
 import com.example.android.camera2basic.adapter.ItemGridAdapter;
 import com.example.android.camera2basic.data.DataStore;
 import com.example.android.camera2basic.data.ItemData;
+import com.example.android.camera2basic.util.GlobalConstants;
 
 import org.json.JSONArray;
 import org.json.JSONException;
@@ -48,7 +49,7 @@ public class HomeActivity extends AppCompatActivity {
         mRecyclerView.setLayoutManager(new GridLayoutManager(this, numberOfColumns));
         if (extras != null) {
             if (extras.getString("data") != null && extras.getString("data").equals("data")) {
-                mItemGridAdapter = new ItemGridAdapter(this, mDataStore.getItemDataPickedList());
+                mItemGridAdapter = new ItemGridAdapter(this, DataStore.getItemDataArrayList());
                 mRecyclerView.setAdapter(mItemGridAdapter);
                 goButton.setText(getResources().getString(R.string.finish));
                 STATUS = getResources().getString(R.string.finish);
@@ -66,10 +67,10 @@ public class HomeActivity extends AppCompatActivity {
                     startActivity(intent);
                     finish();
                 } else {
-                    if (mDataStore.isItemPending()) {
+                    if (DataStore.isItemPending()) {
                         showDialog_PickPending();
                     } else {
-                        mDataStore.clearData();
+                        DataStore.clearData();
                         goToLogin();
                     }
                 }
@@ -128,6 +129,7 @@ public class HomeActivity extends AppCompatActivity {
                     @Override
                     public void run() {
                         Intent intent = new Intent(HomeActivity.this, PathPlanActivity.class);
+                        GlobalConstants.PENDING = true;
                         startActivity(intent);
                         finish();
                         mPickPendingDialog.dismiss();
@@ -138,7 +140,7 @@ public class HomeActivity extends AppCompatActivity {
         noTv.setOnClickListener(new View.OnClickListener() {
             @Override
             public void onClick(View v) {
-                mDataStore.clearData();
+                DataStore.clearData();
                 goToLogin();
                 mPickPendingDialog.dismiss();
             }
@@ -148,11 +150,11 @@ public class HomeActivity extends AppCompatActivity {
 
 
     private void loadDataToGrid() {
-        mDataStore.setItemDataArrayList(getDataFromJSON());
+        DataStore.setItemDataArrayList(getDataFromJSON());
         runOnUiThread(new Runnable() {
             @Override
             public void run() {
-                mItemGridAdapter = new ItemGridAdapter(HomeActivity.this, mDataStore.getItemDataArrayList());
+                mItemGridAdapter = new ItemGridAdapter(HomeActivity.this, DataStore.getItemDataArrayList());
                 mRecyclerView.setAdapter(mItemGridAdapter);
             }
         });

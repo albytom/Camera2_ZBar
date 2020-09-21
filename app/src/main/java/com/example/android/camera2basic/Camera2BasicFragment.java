@@ -65,11 +65,13 @@ import android.widget.TextView;
 import android.widget.Toast;
 
 import androidx.annotation.NonNull;
+import androidx.annotation.Nullable;
 import androidx.core.app.ActivityCompat;
 import androidx.core.content.ContextCompat;
 import androidx.fragment.app.DialogFragment;
 import androidx.fragment.app.Fragment;
 
+import com.example.android.camera2basic.callback.CameraCallBackListener;
 import com.example.android.camera2basic.data.BarcodeFormat;
 import com.example.android.camera2basic.data.DataStore;
 import com.example.android.camera2basic.data.ItemData;
@@ -77,6 +79,7 @@ import com.example.android.camera2basic.data.ZbarData;
 import com.example.android.camera2basic.ui.AutoFitTextureView;
 import com.example.android.camera2basic.ui.BarcodeRectDrawView;
 import com.example.android.camera2basic.ui.ToastHelper;
+import com.example.android.camera2basic.ui.beaconview.pathplanning.BeaconNavigateFragment;
 import com.example.android.camera2basic.util.GlobalConstants;
 import com.example.android.camera2basic.util.GraphicDecoder;
 import com.example.android.camera2basic.util.ZBarDecoder;
@@ -107,7 +110,7 @@ public class Camera2BasicFragment extends Fragment
     private List<BarcodeFormat> mFormats;
     private ArrayList<ZbarData> mZbarDataList;
     DataStore mDataStore;
-    ArrayList<ItemData> mItemDataArrayList;
+    //ArrayList<ItemData> mItemDataArrayList;
     /**
      * Conversion from screen rotation to JPEG orientation.
      */
@@ -130,6 +133,8 @@ public class Camera2BasicFragment extends Fragment
     String mResult = null;
     int mCount = 0;
     private static int imgCount = 0;
+
+    private CameraCallBackListener mCameraCallBackListener;
 
     static {
         ORIENTATIONS.append(Surface.ROTATION_0, 90);
@@ -504,6 +509,18 @@ public class Camera2BasicFragment extends Fragment
         return new Camera2BasicFragment();
     }
 
+    public Camera2BasicFragment() {
+        // Required empty public constructor
+    }
+
+    @Override
+    public void onActivityCreated(@Nullable Bundle savedInstanceState) {
+        super.onActivityCreated(savedInstanceState);
+        //getActivity() is fully created in onActivityCreated and instanceOf differentiate it between different Activities
+        if (getActivity() instanceof CameraCallBackListener)
+            mCameraCallBackListener = (CameraCallBackListener) getActivity();
+    }
+
     @Override
     public View onCreateView(LayoutInflater inflater, ViewGroup container,
                              Bundle savedInstanceState) {
@@ -532,25 +549,19 @@ public class Camera2BasicFragment extends Fragment
         mBarcodeRectDrawView = view.findViewById(R.id.draw_rect_view);
         mZbarDataList = new ArrayList<ZbarData>();
         mDataStore = DataStore.getInstance();
-        if (mDataStore.getItemDataPickedList().size() < 1) {
+        /*if (DataStore.getItemDataPickedList().size() < 1) {
             mItemDataArrayList = mDataStore.getItemDataArrayList();
         } else {
             mItemDataArrayList = mDataStore.getPendingItems();
-        }
+        }*/
 
-        if (mItemDataArrayList.size() > 1) {
+        if (DataStore.getCount() > 1) {
             nextBtn.setText(getResources().getString(R.string.next));
         } else {
             nextBtn.setText(getResources().getString(R.string.skip));
         }
 
-        setItemData(mDataStore.getmPosition());
-    }
-
-    @Override
-    public void onActivityCreated(Bundle savedInstanceState) {
-        super.onActivityCreated(savedInstanceState);
-        //mFile = new File(getExternalStorageDirectory() + "/pic31.jpg");
+        setItemData(DataStore.getmPosition());
     }
 
     @Override
@@ -600,11 +611,11 @@ public class Camera2BasicFragment extends Fragment
     }
 
     private void setItemData(int pos) {
-        itemTv.setText(mItemDataArrayList.get(pos).getItemName());
-        locTv.setText(mItemDataArrayList.get(pos).getItemLoc());
-        bCodeTv.setText(mItemDataArrayList.get(pos).getItemContent());
-        isFoundCv.setChecked(mItemDataArrayList.get(pos).isItemFound());
-        if (mItemDataArrayList.get(pos).getItemContent() != null) {
+        itemTv.setText(DataStore.getCurrentItem().getItemName());
+        locTv.setText(DataStore.getCurrentItem().getItemLoc());
+        bCodeTv.setText(DataStore.getCurrentItem().getItemContent());
+        isFoundCv.setChecked(DataStore.getCurrentItem().isItemFound());
+        if (DataStore.getCurrentItem().getItemContent() != null) {
             nextBtn.setText(getResources().getString(R.string.next));
         } else {
             nextBtn.setText(getResources().getString(R.string.skip));
@@ -1084,28 +1095,37 @@ public class Camera2BasicFragment extends Fragment
                 }
                 break;
             case R.id.prev_btn:
-                if (mDataStore.getmPosition() > 0) {
-                    mDataStore.setmPosition(mDataStore.getmPosition() - 1);
-                    setItemData(mDataStore.getmPosition());
+                if (DataStore.getmPosition() > 0) {
+                    DataStore.setmPosition(DataStore.getmPosition() - 1);
+                    setItemData(DataStore.getmPosition());
                 }
                 break;
             case R.id.next_btn:
-                if (mZbarDataList.size() > 0 || mItemDataArrayList.get(mDataStore.getmPosition()).isItemFound()) {
+                if (mZbarDataList.size() > 0 || DataStore.getCurrentItem().isItemFound()) {
                     nextButtonClick();
                 } else {
-                    showDialog_SkipItem(mItemDataArrayList.get(mDataStore.getmPosition()).getItemName());
+                    showDialog_SkipItem(DataStore.getCurrentItem().getItemName());
                 }
                 break;
         }
     }
 
+    private void loadNavigateFragment(){
+        BeaconNavigateFragment nextFrag= new BeaconNavigateFragment();
+        getActivity().getSupportFragmentManager().beginTransaction()
+                .replace(R.id.container, nextFrag, "navigateFragment")
+                .addToBackStack(null)
+                .commit();
+        GlobalConstants.MODE = "navigateFragment";
+    }
+
     private void nextButtonClick() {
         setDataToList();
-        if (mDataStore.getmPosition() < mItemDataArrayList.size() - 1) {
-            if (mDataStore.getmPosition() < mItemDataArrayList.size() - 1) {
-                mDataStore.setmPosition(mDataStore.getmPosition() + 1);
-                setItemData(mDataStore.getmPosition());
-            }
+        if (DataStore.getmPosition() < DataStore.getCount() - 1) {
+                DataStore.setmPosition(DataStore.getmPosition() + 1);
+                setItemData(DataStore.getmPosition());
+                mCameraCallBackListener.onCameraCallBack();
+                //loadNavigateFragment();
         } else {
             Intent intent = new Intent(getContext(), HomeActivity.class);
             intent.putExtra("data", "data");
@@ -1116,29 +1136,29 @@ public class Camera2BasicFragment extends Fragment
     }
 
     private void setDataToList() {
-        ItemData itemData = mItemDataArrayList.get(mDataStore.getmPosition());
+        ItemData itemData = DataStore.getCurrentItem();
         if (!itemData.isItemFound()) {
             if (mZbarDataList.size() > 0) {
                 itemData.setItemContent(mZbarDataList.get(index).getmData());
                 itemData.setItemFound(true);
             }
-            setDataToLocalList(itemData);
-            if (mDataStore.hasItemDataPickedList(itemData)) {
-                mDataStore.setItemDataPickedList(itemData);
-            } else {
-                mDataStore.addItemDataPickedList(itemData);
-            }
+            //setDataToLocalList(itemData);
+            if (DataStore.hasItemDataPickedList(itemData)) {
+                DataStore.setItemDataPickedList(itemData);
+            } /*else {
+                DataStore.addItemDataPickedList(itemData);
+            }*/
         }
 
     }
 
-    private void setDataToLocalList(ItemData itemData) {
+   /* private void setDataToLocalList(ItemData itemData) {
         for (int j = 0; j < mItemDataArrayList.size(); j++) {
             if (mItemDataArrayList.get(j).getId() == itemData.getId()) {
                 mItemDataArrayList.set(j, itemData);
             }
         }
-    }
+    }*/
 
     private void setAutoFlash(CaptureRequest.Builder requestBuilder) {
         if (mFlashSupported) {
@@ -1245,7 +1265,7 @@ public class Camera2BasicFragment extends Fragment
             public void run() {
                 bCodeTv.setText(data);
                 nextBtn.setText(getResources().getString(R.string.next));
-                showToastResult(mItemDataArrayList.get(mDataStore.getmPosition()).getItemName() + " picked: " + data);
+                showToastResult(DataStore.getCurrentItem().getItemName() + " picked: " + data);
                 //ToastHelper.showToast(getActivity(), mItemDataArrayList.get(position).getItemName() + " picked: " + data, ToastHelper.LENGTH_SHORT);
 
             }

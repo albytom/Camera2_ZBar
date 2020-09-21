@@ -9,6 +9,7 @@ import android.view.MenuInflater;
 import android.view.MenuItem;
 import android.view.View;
 import android.view.ViewGroup;
+import android.widget.FrameLayout;
 
 import androidx.annotation.CallSuper;
 import androidx.annotation.LayoutRes;
@@ -42,7 +43,7 @@ public abstract class BeaconViewFragment extends Fragment {
    // protected IBeaconFilter uuidFilter = new IBeaconFilter(IndoorPositioningAdvertisingPacket.INDOOR_POSITIONING_UUID);
     protected IBeaconFilter uuidFilter = new IBeaconFilter(IndoorPositioningAdvertisingPacket.INDOOR_POSITIONING_UUID, UUID.fromString("fda50693-a4e2-4fb1-afcf-c6eb07647825"));
 
-    protected CoordinatorLayout coordinatorLayout;
+    protected FrameLayout mFrameLayout;
 
     @ColorUtil.ColoringMode
     protected int coloringMode = ColorUtil.COLORING_MODE_INSTANCES;
@@ -71,7 +72,7 @@ public abstract class BeaconViewFragment extends Fragment {
     @Override
     public View onCreateView(LayoutInflater inflater, ViewGroup container, Bundle savedInstanceState) {
         View inflatedView = inflater.inflate(getLayoutResourceId(), container, false);
-        coordinatorLayout = inflatedView.findViewById(R.id.coordinatorLayout);
+        mFrameLayout = inflatedView.findViewById(R.id.container);
         return inflatedView;
     }
 
