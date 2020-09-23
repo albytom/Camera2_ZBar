@@ -53,7 +53,6 @@ public class DataStore {
             }
         }
         return itemDataArrayList.get(mPosition);
-
     }
 
     public static void setItemDataPickedList(ItemData data) {

@@ -100,7 +100,6 @@ public class BeaconNavigateFragment extends BeaconViewFragment implements View.O
         super();
         //uncomment to add uuid filter
         //beaconFilters.add(uuidFilter);
-
         sensorEventListener = new SensorEventListener() {
             @Override
             public void onSensorChanged(SensorEvent sensorEvent) {
@@ -298,9 +297,9 @@ public class BeaconNavigateFragment extends BeaconViewFragment implements View.O
     public void onViewCreated(@NonNull View view, @Nullable Bundle savedInstanceState) {
         super.onViewCreated(view, savedInstanceState);
         Log.d("beacon", "-----view created--------- ");
-        myBitmap = BitmapFactory.decodeResource(getResources(), R.drawable.newhome1);
+        myBitmap = BitmapFactory.decodeResource(getResources(), R.drawable.second_floor);
         options.inScaled = false;
-        bmp_mono = BitmapFactory.decodeResource(getResources(), R.drawable.newhome_mono, options);
+        bmp_mono = BitmapFactory.decodeResource(getResources(), R.drawable.second_floor_mono, options);
         itemTv = view.findViewById(R.id.i_title_tv);
         locTv = view.findViewById(R.id.i_loc_tv);
         scanBtn = view.findViewById(R.id.scan_btn);
@@ -348,7 +347,7 @@ public class BeaconNavigateFragment extends BeaconViewFragment implements View.O
     private void plotPath() {
         mRunnable = new Runnable() {
             public void run() {
-                handler.postDelayed(this, 5000);
+                handler.postDelayed(this, 2000);
                 if (localized_position.getValue() != null) {
                     double[] result = findNearestPixel(localized_position.getValue(), coordinate_list);
                     input_cordinates = new int[]{(int) result[0], (int) result[1], DataStore.getCurrentItem().getItem_loc_cord()[0], DataStore.getCurrentItem().getItem_loc_cord()[1]};

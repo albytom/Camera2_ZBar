@@ -14,6 +14,8 @@ import androidx.recyclerview.widget.GridLayoutManager;
 import androidx.recyclerview.widget.RecyclerView;
 
 import com.example.android.camera2basic.adapter.ItemGridAdapter;
+import com.example.android.camera2basic.bluetooth.BeaconLoc;
+import com.example.android.camera2basic.bluetooth.BeaconStore;
 import com.example.android.camera2basic.data.DataStore;
 import com.example.android.camera2basic.data.ItemData;
 import com.example.android.camera2basic.util.GlobalConstants;
@@ -55,6 +57,7 @@ public class HomeActivity extends AppCompatActivity {
                 STATUS = getResources().getString(R.string.finish);
             } else if (extras.getString("name") != null) {
                 showDialog_LoadData();
+               BeaconStore.setBeaconArrayList(getBeaconsFromJSON());
             }
         }
 
@@ -166,7 +169,7 @@ public class HomeActivity extends AppCompatActivity {
     private ArrayList<ItemData> getDataFromJSON() {
         ArrayList<ItemData> itemDataList = new ArrayList<>();
         try {
-            JSONObject obj = new JSONObject(loadJSONFromAsset());
+            JSONObject obj = new JSONObject(loadJSONFromAsset("data.json"));
             JSONArray m_jArry = obj.getJSONArray("Data");
 
             for (int i = 0; i < m_jArry.length(); i++) {
@@ -199,10 +202,37 @@ public class HomeActivity extends AppCompatActivity {
         }
     }
 
-    private String loadJSONFromAsset() {
+    private ArrayList<BeaconLoc> getBeaconsFromJSON() {
+        ArrayList<BeaconLoc> vBeaconLocArrayList = new ArrayList<>();
+        try {
+            JSONObject obj = new JSONObject(loadJSONFromAsset("beacons.json"));
+            JSONArray m_jArry = obj.getJSONArray("beacon");
+
+            for (int i = 0; i < m_jArry.length(); i++) {
+                JSONObject jo_inside = m_jArry.getJSONObject(i);
+                Log.d("ID-->", "" + jo_inside.getInt("id"));
+                int id = jo_inside.getInt("id");
+                int ky = jo_inside.getInt("ky");
+                int kx = jo_inside.getInt("kx");
+                int minor = jo_inside.getInt("minor");
+                int major = jo_inside.getInt("major");
+                String uuid = jo_inside.getString("uuid");
+                String name = jo_inside.getString("name");
+
+                //Add your values in your `ArrayList` as below:
+                vBeaconLocArrayList.add(new BeaconLoc(id, ky, kx, minor, major, uuid, name));
+            }
+            return vBeaconLocArrayList;
+        } catch (JSONException e) {
+            e.printStackTrace();
+            return null;
+        }
+    }
+
+    private String loadJSONFromAsset(String fileName) {
         String json = null;
         try {
-            InputStream is = HomeActivity.this.getAssets().open("data.json");
+            InputStream is = HomeActivity.this.getAssets().open(fileName);
             int size = is.available();
             byte[] buffer = new byte[size];
             is.read(buffer);
