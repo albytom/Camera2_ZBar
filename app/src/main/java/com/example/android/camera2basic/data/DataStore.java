@@ -54,6 +54,9 @@ public class DataStore {
         }
         return itemDataArrayList.get(mPosition);
     }
+    public static ItemData getItem(int id) {
+        return itemDataArrayList.get(id);
+    }
 
     public static void setItemDataPickedList(ItemData data) {
         itemDataArrayList.set(data.getId(), data);
@@ -104,6 +107,15 @@ public class DataStore {
             }
         }
         return count;
+    }
+
+    public static void updatePosition(){
+        for (int i = 0; i < itemDataArrayList.size() - 1; i++) {
+            if (!itemDataArrayList.get(i).isItemFound()) {
+                setmPosition(i);
+                return;
+            }
+        }
     }
 
     public static int getCount() {

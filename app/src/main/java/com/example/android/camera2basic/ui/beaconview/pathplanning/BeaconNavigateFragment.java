@@ -29,7 +29,8 @@ import com.example.android.camera2basic.Camera2BasicFragment;
 import com.example.android.camera2basic.R;
 import com.example.android.camera2basic.callback.NavigateCallBackListener;
 import com.example.android.camera2basic.data.DataStore;
-import com.example.android.camera2basic.data.ItemData;
+import com.example.android.camera2basic.data.LocationItem;
+import com.example.android.camera2basic.data.LocationStore;
 import com.example.android.camera2basic.ui.beaconview.BeaconViewFragment;
 import com.example.android.camera2basic.ui.beaconview.CvUtil;
 import com.example.android.camera2basic.util.GlobalConstants;
@@ -85,16 +86,18 @@ public class BeaconNavigateFragment extends BeaconViewFragment implements View.O
     private MutableLiveData<double[]> localized_position = new MutableLiveData<>();
     private boolean plottedPath = false;
     //  double[][] coordinate_list=new double[][]{{570,304},{114,101},{115,325},{782,406},{460,73},{292,625}};
-    double[][] coordinate_list = new double[][]{{81, 107}, {284, 107}, {81, 393}, {273, 393}, {380, 153}, {557, 153}, {376, 541}, {540, 541}};
+    //double[][] coordinate_list = new double[][]{{81, 107}, {284, 107}, {81, 393}, {273, 393}, {380, 153}, {557, 153}, {376, 541}, {540, 541}};
+    double[][] coordinate_list;
     double[][] digkistra_coordinates = null;
 
     DataStore mDataStore;
-   //ArrayList<ItemData> mItemDataArrayList;
+    //ArrayList<ItemData> mItemDataArrayList;
     private TextView itemTv, locTv;
     private Button scanBtn;
     final Handler handler = new Handler();
     private Runnable mRunnable;
     private NavigateCallBackListener callBackListener;
+    private boolean isNear = false;
 
     public BeaconNavigateFragment() {
         super();
@@ -208,6 +211,15 @@ public class BeaconNavigateFragment extends BeaconViewFragment implements View.O
                         localized_position.setValue(calculateAverageVal());
                         if (output_coordinates != null) {
                             double[] result = findNearestPixel(result_pos, digkistra_coordinates);
+                            if (input_cordinates != null && !isNear) {
+                                double dis = DisatanceToDestination(result_pos, new int[]{input_cordinates[2], input_cordinates[3]});
+                                if (dis < 200) {
+                                    Toast.makeText(getActivity().getApplicationContext(), "You are " + String.format("%.2f", dis / 100) + " meter away from destination !!", Toast.LENGTH_SHORT).show();
+                                    scanBtn.setVisibility(View.VISIBLE);
+                                    isNear = true;
+                                }
+
+                            }
                             if (result[2] < 100.0)
                                 drawPoint(3 * (int) result[0], 3 * (int) result[1]);
                             else
@@ -294,15 +306,38 @@ public class BeaconNavigateFragment extends BeaconViewFragment implements View.O
     }
 
     @Override
+    public void onPause() {
+        super.onPause();
+        plottedPath = false;
+
+    }
+
+    @Override
+    public void onResume() {
+        super.onResume();
+        localized_position.observe(getActivity(), new Observer() {
+            @Override
+            public void onChanged(Object pO) {
+                if (!plottedPath) {
+                    plotPath();
+                    plottedPath = true;
+                    isNear = false;
+                }
+            }
+        });
+    }
+
+    @Override
     public void onViewCreated(@NonNull View view, @Nullable Bundle savedInstanceState) {
         super.onViewCreated(view, savedInstanceState);
         Log.d("beacon", "-----view created--------- ");
         myBitmap = BitmapFactory.decodeResource(getResources(), R.drawable.second_floor);
-        options.inScaled = false;
+        options.inScaled = true;
         bmp_mono = BitmapFactory.decodeResource(getResources(), R.drawable.second_floor_mono, options);
         itemTv = view.findViewById(R.id.i_title_tv);
         locTv = view.findViewById(R.id.i_loc_tv);
         scanBtn = view.findViewById(R.id.scan_btn);
+        scanBtn.setVisibility(View.INVISIBLE);
         scanBtn.setOnClickListener((View.OnClickListener) this);
         mDataStore = DataStore.getInstance();
         /*if (mDataStore.getItemDataPickedList().size() < 1) {
@@ -324,15 +359,33 @@ public class BeaconNavigateFragment extends BeaconViewFragment implements View.O
         path_canvas = new Canvas(path_bitmap);
         tempCanvas.drawBitmap(myBitmap, 0, 0, null);
         //tempCanvas1.drawBitmap(myBitmap, 0, 0, null);
+        /**Below code is for testing pathplanning with static cordinates*/
+       // input_cordinates = new int[]{DataStore.getItem(DataStore.getmPosition()+2).getItem_loc_cord()[0], DataStore.getItem(DataStore.getmPosition()+2).getItem_loc_cord()[1], DataStore.getCurrentItem().getItem_loc_cord()[0], DataStore.getCurrentItem().getItem_loc_cord()[1]};
+       // performNavigation(input_cordinates);
+
+        getLocationsToArray();
+
         localized_position.observe(getActivity(), new Observer() {
             @Override
             public void onChanged(Object pO) {
                 if (!plottedPath) {
                     plotPath();
                     plottedPath = true;
+                    isNear = false;
                 }
             }
         });
+    }
+
+    private void getLocationsToArray() {
+        ArrayList<LocationItem> vLocationItems = LocationStore.getLocArrayList();
+        coordinate_list = new double [vLocationItems.size()][2];
+        int count = 0;
+        for(LocationItem vLocationItem: vLocationItems){
+            coordinate_list[count][0] = vLocationItem.getKx();
+            coordinate_list[count][1] = vLocationItem.getKy();
+            count++;
+        }
     }
 
     private void loadCameraFragment() {
@@ -351,7 +404,7 @@ public class BeaconNavigateFragment extends BeaconViewFragment implements View.O
                 if (localized_position.getValue() != null) {
                     double[] result = findNearestPixel(localized_position.getValue(), coordinate_list);
                     input_cordinates = new int[]{(int) result[0], (int) result[1], DataStore.getCurrentItem().getItem_loc_cord()[0], DataStore.getCurrentItem().getItem_loc_cord()[1]};
-                    //input_cordinates = new int[]{mItemDataArrayList.get(DataStore.getmPosition()+1).getItem_loc_cord()[0], mItemDataArrayList.get(DataStore.getmPosition()+1).getItem_loc_cord()[0], mItemDataArrayList.get(DataStore.getmPosition()).getItem_loc_cord()[0], mItemDataArrayList.get(DataStore.getmPosition()).getItem_loc_cord()[1]};
+                    //input_cordinates = new int[]{DataStore.getItem(DataStore.getmPosition()+1).getItem_loc_cord()[0], DataStore.getItem(DataStore.getmPosition()+1).getItem_loc_cord()[1], DataStore.getCurrentItem().getItem_loc_cord()[0], DataStore.getCurrentItem().getItem_loc_cord()[1]};
 
                     Log.d("beacon", "distance=" + result[2]);
                     performNavigation(input_cordinates);
@@ -376,6 +429,7 @@ public class BeaconNavigateFragment extends BeaconViewFragment implements View.O
     }
 
     private void performNavigation(int[] input_coordinates) {
+        Toast.makeText(getActivity().getApplicationContext(), "input_coordinates. 0:" + input_coordinates[0] + " 1: " + input_coordinates[1]+ " 2: " + input_coordinates[2]+ " 3: " + input_coordinates[3], Toast.LENGTH_SHORT).show();
         try {
             Utils.bitmapToMat(bmp_mono, srcMat);
             output_coordinates = CvUtil.processPathPlanning(srcMat, input_coordinates);
@@ -395,7 +449,7 @@ public class BeaconNavigateFragment extends BeaconViewFragment implements View.O
                     digkistra_coordinates[i / 2][1] = output_coordinates[i + 1];
                 }
             } else
-                Toast.makeText(getActivity().getApplicationContext(), "Sorry. No root found !!", Toast.LENGTH_SHORT).show();
+                Toast.makeText(getActivity().getApplicationContext(), "Sorry. No route found !!", Toast.LENGTH_SHORT).show();
 
         } catch (Exception e) {
             e.printStackTrace();
@@ -432,6 +486,7 @@ public class BeaconNavigateFragment extends BeaconViewFragment implements View.O
             tempCanvas.drawBitmap(copy_bmp, 0, 0, null);
         }
         tempCanvas.drawCircle(x, y, 30, paint);
+
         mImageView.setImageDrawable(new BitmapDrawable(getResources(), tempBitmap));
     }
 
@@ -458,4 +513,7 @@ public class BeaconNavigateFragment extends BeaconViewFragment implements View.O
         copy_bmp = path_bitmap;
     }
 
+    private double DisatanceToDestination(double[] source, int[] destination) {
+        return Math.sqrt(Math.pow((destination[0] - source[0]), 2) + Math.pow((destination[1] - source[1]), 2));
+    }
 }

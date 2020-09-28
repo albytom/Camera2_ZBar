@@ -18,7 +18,10 @@ import com.example.android.camera2basic.bluetooth.BeaconLoc;
 import com.example.android.camera2basic.bluetooth.BeaconStore;
 import com.example.android.camera2basic.data.DataStore;
 import com.example.android.camera2basic.data.ItemData;
+import com.example.android.camera2basic.data.LocationItem;
+import com.example.android.camera2basic.data.LocationStore;
 import com.example.android.camera2basic.util.GlobalConstants;
+import com.nexenio.bleindoorpositioning.location.Location;
 
 import org.json.JSONArray;
 import org.json.JSONException;
@@ -27,15 +30,19 @@ import org.json.JSONObject;
 import java.io.IOException;
 import java.io.InputStream;
 import java.util.ArrayList;
+import java.util.HashMap;
+import java.util.Map;
 
 public class HomeActivity extends AppCompatActivity {
 
     ItemGridAdapter mItemGridAdapter;
     DataStore mDataStore;
+    LocationStore mLocationStore;
     Button goButton;
     private static String STATUS = "";
     private Dialog mPickPendingDialog;
     private RecyclerView mRecyclerView;
+    private HashMap<String, int[]> hm_location=new HashMap<String, int[]>();
 
 
     @Override
@@ -46,6 +53,7 @@ public class HomeActivity extends AppCompatActivity {
         goButton = findViewById(R.id.button_go);
         Bundle extras = getIntent().getExtras();
         mDataStore = DataStore.getInstance();
+        mLocationStore = LocationStore.getInstance();
         mRecyclerView = findViewById(R.id.rv_data);
         int numberOfColumns = 4;
         mRecyclerView.setLayoutManager(new GridLayoutManager(this, numberOfColumns));
@@ -61,6 +69,10 @@ public class HomeActivity extends AppCompatActivity {
             }
         }
 
+        getLocationFromJSON();
+
+        //printHmLocations();
+
 
         goButton.setOnClickListener(new View.OnClickListener() {
             @Override
@@ -71,6 +83,7 @@ public class HomeActivity extends AppCompatActivity {
                     finish();
                 } else {
                     if (DataStore.isItemPending()) {
+                        DataStore.updatePosition();
                         showDialog_PickPending();
                     } else {
                         DataStore.clearData();
@@ -244,4 +257,49 @@ public class HomeActivity extends AppCompatActivity {
         }
         return json;
     }
+
+    private  void printHmLoactions()
+    {
+        for (Map.Entry<String, int[]> entry : hm_location.entrySet()) {
+            System.out.println(entry.getKey() + ": X: " + entry.getValue()[0]+ ", Y: " + entry.getValue()[1]);
+        }
+
+    }
+    private void getLocationFromJSON() {
+
+        try {
+            JSONObject obj = new JSONObject(loadJSONFromAsset("cubicles.json"));
+            JSONArray m_jArry = obj.getJSONArray("locations");
+
+            for (int i = 0; i < m_jArry.length(); i++) {
+                JSONObject jo_inside = m_jArry.getJSONObject(i);
+                Log.d("ID-->", "" + jo_inside.getString("Cubicle"));
+                String cubicle = jo_inside.getString("Cubicle");
+                int kX = jo_inside.getInt("X");
+                int kY = jo_inside.getInt("Y");
+
+                //Add your values in your `ArrayList` as below:
+                //hm_location.put(cubicle,new int[]{kX, kY});
+                LocationStore.addToLocArrayList(new LocationItem(kY, kX, cubicle));
+            }
+        } catch (JSONException e) {
+            e.printStackTrace();
+        }
+    }
+
+   /* private String loadJSONFromAsset(String fileName) {
+        String json = null;
+        try {
+            InputStream is = getActivity().getAssets().open(fileName);
+            int size = is.available();
+            byte[] buffer = new byte[size];
+            is.read(buffer);
+            is.close();
+            json = new String(buffer, "UTF-8");
+        } catch (IOException ex) {
+            ex.printStackTrace();
+            return null;
+        }
+        return json;
+    }*/
 }
