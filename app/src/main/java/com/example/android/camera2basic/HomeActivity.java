@@ -2,7 +2,11 @@ package com.example.android.camera2basic;
 
 import android.app.Dialog;
 import android.content.Intent;
+import android.graphics.Bitmap;
+import android.graphics.BitmapFactory;
+import android.graphics.Point;
 import android.os.Bundle;
+import android.util.DisplayMetrics;
 import android.util.Log;
 import android.view.View;
 import android.widget.Button;
@@ -35,6 +39,7 @@ import java.util.Map;
 
 public class HomeActivity extends AppCompatActivity {
 
+    public static String LOGTAG = "HomeActivity";
     ItemGridAdapter mItemGridAdapter;
     DataStore mDataStore;
     LocationStore mLocationStore;
@@ -43,6 +48,7 @@ public class HomeActivity extends AppCompatActivity {
     private Dialog mPickPendingDialog;
     private RecyclerView mRecyclerView;
     private HashMap<String, int[]> hm_location=new HashMap<String, int[]>();
+    BitmapFactory.Options options = new BitmapFactory.Options();
 
 
     @Override
@@ -50,6 +56,17 @@ public class HomeActivity extends AppCompatActivity {
         super.onCreate(savedInstanceState);
         setContentView(R.layout.activity_home);
 
+        DisplayMetrics displayMetrics = new DisplayMetrics();
+        getWindowManager().getDefaultDisplay().getMetrics(displayMetrics);
+
+        GlobalConstants.REAL_SCR_HEIGHT = displayMetrics.heightPixels;
+        GlobalConstants.REAL_SCR_WIDTH = displayMetrics.widthPixels;
+
+        options.inScaled = false;
+        Bitmap b = BitmapFactory.decodeResource(getResources(), R.drawable.second_floor_mono, options);
+        Log.e(LOGTAG, "Bitmap getHeight: "+ b.getHeight());
+        Log.e(LOGTAG, "Bitmap getWidth: "+ b.getWidth());
+        getFloorPlanMonoSize(GlobalConstants.REAL_SCR_HEIGHT, GlobalConstants.REAL_SCR_WIDTH, b.getHeight(), b.getWidth());
         goButton = findViewById(R.id.button_go);
         Bundle extras = getIntent().getExtras();
         mDataStore = DataStore.getInstance();
@@ -100,6 +117,7 @@ public class HomeActivity extends AppCompatActivity {
     private void showDialog_LoadData() {
         mPickPendingDialog = new Dialog(this);
         mPickPendingDialog.setContentView(R.layout.empty_list_dialog);
+        mPickPendingDialog.setCancelable(false);
         TextView yesTv = mPickPendingDialog.findViewById(R.id.yes_tv);
         TextView noTv = mPickPendingDialog.findViewById(R.id.no_tv);
         yesTv.setOnClickListener(new View.OnClickListener() {
@@ -280,7 +298,7 @@ public class HomeActivity extends AppCompatActivity {
 
                 //Add your values in your `ArrayList` as below:
                 //hm_location.put(cubicle,new int[]{kX, kY});
-                LocationStore.addToLocArrayList(new LocationItem(kY, kX, cubicle));
+                LocationStore.addToLocArrayList(new LocationItem(GlobalConstants.BITMAP_SCALE_HEIGHT*kY, GlobalConstants.BITMAP_SCALE_WIDTH*kX, cubicle));
             }
         } catch (JSONException e) {
             e.printStackTrace();
@@ -302,4 +320,17 @@ public class HomeActivity extends AppCompatActivity {
         }
         return json;
     }*/
+   private void getFloorPlanMonoSize(int imageViewHeight, int imageViewWidth, int bitmapHeight, int bitmapWidth){
+
+       if (imageViewHeight * bitmapWidth <= imageViewWidth * bitmapHeight) {
+           GlobalConstants.BITMAP_SCALE_WIDTH = bitmapWidth * imageViewHeight / bitmapHeight;
+           GlobalConstants.BITMAP_SCALE_HEIGHT = imageViewHeight;
+           GlobalConstants.SCALE_FACTOR = (float)GlobalConstants.BITMAP_SCALE_HEIGHT/(float)bitmapHeight;
+       } else {
+           GlobalConstants.BITMAP_SCALE_HEIGHT = bitmapHeight * imageViewWidth / bitmapWidth;
+           GlobalConstants.BITMAP_SCALE_WIDTH = imageViewWidth;
+           GlobalConstants.SCALE_FACTOR = (float)GlobalConstants.BITMAP_SCALE_WIDTH/(float)bitmapWidth;
+       }
+   }
+
 }

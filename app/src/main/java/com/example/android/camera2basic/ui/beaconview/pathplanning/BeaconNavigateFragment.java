@@ -6,6 +6,7 @@ import android.graphics.BitmapFactory;
 import android.graphics.Canvas;
 import android.graphics.Color;
 import android.graphics.Paint;
+import android.graphics.Point;
 import android.graphics.drawable.BitmapDrawable;
 import android.hardware.Sensor;
 import android.hardware.SensorEvent;
@@ -52,7 +53,7 @@ import java.util.HashMap;
 import java.util.List;
 
 public class BeaconNavigateFragment extends BeaconViewFragment implements View.OnClickListener {
-    public static String LOGTAG = "beacon";
+    public static String LOGTAG = "BeaconNavigateFragment";
     public static String beacon_data = "";
     StringBuffer sb = new StringBuffer();
     Bitmap myBitmap, tempBitmap, path_bitmap;
@@ -331,9 +332,25 @@ public class BeaconNavigateFragment extends BeaconViewFragment implements View.O
     public void onViewCreated(@NonNull View view, @Nullable Bundle savedInstanceState) {
         super.onViewCreated(view, savedInstanceState);
         Log.d("beacon", "-----view created--------- ");
+        mImageView = (ImageView) getView().findViewById(R.id.plan);
         myBitmap = BitmapFactory.decodeResource(getResources(), R.drawable.second_floor);
-        options.inScaled = true;
-        bmp_mono = BitmapFactory.decodeResource(getResources(), R.drawable.second_floor_mono, options);
+        options.inScaled = false;
+        Bitmap b = BitmapFactory.decodeResource(getResources(), R.drawable.second_floor_mono, options);
+        Log.e(LOGTAG, "Bitmap getHeight: "+ b.getHeight());
+        Log.e(LOGTAG, "Bitmap getWidth: "+ b.getWidth());
+        Point bitmapSize = getFloorPlanMonoSize(GlobalConstants.REAL_SCR_HEIGHT, GlobalConstants.REAL_SCR_WIDTH, GlobalConstants.BITMAP_SCALE_HEIGHT, GlobalConstants.BITMAP_SCALE_WIDTH);
+        Log.e(LOGTAG, "mImageView IntrinsicHeight: "+ mImageView.getDrawable().getIntrinsicHeight());
+        Log.e(LOGTAG, "mImageView IntrinsicWidth: "+ mImageView.getDrawable().getIntrinsicWidth());
+        Log.e(LOGTAG, "mImageView Height: "+ GlobalConstants.REAL_SCR_HEIGHT);
+        Log.e(LOGTAG, "mImageView Width: "+ GlobalConstants.REAL_SCR_WIDTH);
+
+       /* bmp_mono.setHeight(bitmapSize.x);
+        bmp_mono.setWidth(bitmapSize.y);*/
+        Log.e(LOGTAG, "mImageView bitmapSize.x: "+ bitmapSize.x);
+        Log.e(LOGTAG, "mImageView bitmapSize.y: "+ bitmapSize.y);
+
+        bmp_mono = Bitmap.createScaledBitmap(b, bitmapSize.y, bitmapSize.x, false);
+        //bmp_mono = BitmapFactory.decodeResource(getResources(), R.drawable.second_floor_mono, options);
         itemTv = view.findViewById(R.id.i_title_tv);
         locTv = view.findViewById(R.id.i_loc_tv);
         scanBtn = view.findViewById(R.id.scan_btn);
@@ -351,7 +368,7 @@ public class BeaconNavigateFragment extends BeaconViewFragment implements View.O
         paint.setStyle(Paint.Style.FILL);
         paint.setColor(Color.RED);
         paint.setAntiAlias(true);
-        mImageView = (ImageView) getView().findViewById(R.id.plan);
+
         Log.d("beacon", "view created ");
         tempBitmap = Bitmap.createBitmap(myBitmap.getWidth(), myBitmap.getHeight(), Bitmap.Config.RGB_565);
         path_bitmap = Bitmap.createBitmap(myBitmap.getWidth(), myBitmap.getHeight(), Bitmap.Config.RGB_565);
@@ -515,5 +532,17 @@ public class BeaconNavigateFragment extends BeaconViewFragment implements View.O
 
     private double DisatanceToDestination(double[] source, int[] destination) {
         return Math.sqrt(Math.pow((destination[0] - source[0]), 2) + Math.pow((destination[1] - source[1]), 2));
+    }
+
+    private Point getFloorPlanMonoSize(int imageViewHeight, int imageViewWidth, int bitmapHeight, int bitmapWidth){
+        final int actualHeight, actualWidth;
+        if (imageViewHeight * bitmapWidth <= imageViewWidth * bitmapHeight) {
+            actualWidth = bitmapWidth * imageViewHeight / bitmapHeight;
+            actualHeight = imageViewHeight;
+        } else {
+            actualHeight = bitmapHeight * imageViewWidth / bitmapWidth;
+            actualWidth = imageViewWidth;
+        }
+        return new Point(actualHeight, actualWidth);
     }
 }

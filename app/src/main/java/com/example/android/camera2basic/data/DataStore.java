@@ -137,5 +137,6 @@ public class DataStore {
     public static void clearData() {
         //itemDataPickedList.clear();
         itemDataArrayList.clear();
+        setmPosition(0);
     }
 }

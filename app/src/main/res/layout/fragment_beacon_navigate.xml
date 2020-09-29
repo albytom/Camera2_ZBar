@@ -17,13 +17,17 @@
         android:layout_width="wrap_content"
         android:layout_height="wrap_content"
         android:layout_centerInParent="true">
-
-        <ImageView
+       <!-- <ImageView
             android:id="@+id/plan"
             android:layout_width="wrap_content"
             android:layout_height="wrap_content"
             android:layout_marginStart="-1dp"
             android:layout_marginTop="-19dp"
+            android:src="@drawable/second_floor" />-->
+        <ImageView
+            android:id="@+id/plan"
+            android:layout_width="wrap_content"
+            android:layout_height="wrap_content"
             android:src="@drawable/second_floor" />
     </FrameLayout>
 
@@ -94,19 +98,23 @@
             android:entries="@array/stop_roomlist"
             android:spinnerMode="dialog" />-->
 
-        <ImageView
-            android:id="@+id/go_button"
-            android:layout_width="0dp"
-            android:layout_height="match_parent"
-            android:layout_gravity="center"
-            android:layout_marginStart="15dp"
-            android:layout_marginEnd="15dp"
-            android:layout_weight="0.7"
-            android:background="@drawable/circle_bg"
-            android:clickable="true"
-            android:elevation="25dp"
-            android:focusable="true"
-            android:src="@drawable/chevron_right" />
+        <LinearLayout
+            android:layout_width="wrap_content"
+            android:layout_height="wrap_content"
+            android:layout_alignParentEnd="true"
+            android:layout_alignParentBottom="true"
+            android:orientation="horizontal">
+
+            <Button
+                android:id="@+id/scan_btn"
+                android:layout_width="wrap_content"
+                android:layout_height="wrap_content"
+                android:layout_margin="10dp"
+                android:background="@drawable/button_bg"
+                android:elevation="10dp"
+                android:text="@string/scan"
+                android:textSize="26sp" />
+        </LinearLayout>
 
     </LinearLayout>
 </RelativeLayout>

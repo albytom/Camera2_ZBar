@@ -3,36 +3,50 @@
     android:id="@+id/relative_layout"
     android:layout_width="match_parent"
     android:layout_height="wrap_content"
+    android:background="@drawable/map_street_light"
     android:backgroundTint="@color/primary"
-    android:backgroundTintMode="multiply"
-    android:background="@drawable/map_street_light">
+    android:backgroundTintMode="multiply">
 
     <FrameLayout
         android:layout_width="wrap_content"
         android:layout_height="wrap_content"
         android:layout_centerInParent="true">
-
-        <ImageView
+        <!--<ImageView
             android:id="@+id/plan"
             android:layout_width="wrap_content"
             android:layout_height="wrap_content"
             android:layout_marginStart="-1dp"
             android:layout_marginTop="-19dp"
+            android:src="@drawable/second_floor" />-->
+        <ImageView
+            android:id="@+id/plan"
+            android:layout_width="wrap_content"
+            android:layout_height="wrap_content"
             android:src="@drawable/second_floor" />
     </FrameLayout>
+
     <include
-        android:layout_width="120dp"
-        android:layout_height="80dp"
+        layout="@layout/location_item"
+        android:layout_width="70dp"
+        android:layout_height="70dp"
         android:layout_alignParentTop="true"
-        android:layout_alignParentEnd="true"
-        layout="@layout/location_item"/>
-    <Button
-        android:id="@+id/scan_btn"
-        android:layout_alignParentBottom="true"
-        android:layout_alignParentEnd="true"
-        android:text="@string/scan"
-        android:background="@drawable/button_bg"
-        android:textSize="26sp"
+        android:layout_alignParentEnd="true" />
+
+    <LinearLayout
         android:layout_width="wrap_content"
-        android:layout_height="wrap_content"/>
+        android:layout_height="wrap_content"
+        android:layout_alignParentEnd="true"
+        android:layout_alignParentBottom="true"
+        android:orientation="horizontal">
+
+        <Button
+            android:id="@+id/scan_btn"
+            android:layout_width="wrap_content"
+            android:layout_height="wrap_content"
+            android:layout_margin="10dp"
+            android:background="@drawable/button_bg"
+            android:elevation="10dp"
+            android:text="@string/scan"
+            android:textSize="26sp" />
+    </LinearLayout>
 </RelativeLayout>
