@@ -16,9 +16,14 @@
             android:id="@+id/plan"
             android:layout_width="wrap_content"
             android:layout_height="wrap_content"
+            android:src="@drawable/second_floor" />
+        <!--<ImageView
+            android:id="@+id/plan"
+            android:layout_width="wrap_content"
+            android:layout_height="wrap_content"
             android:layout_marginStart="-1dp"
             android:layout_marginTop="-19dp"
-            android:src="@drawable/second_floor" />
+            android:src="@drawable/second_floor" />-->
     </FrameLayout>
     <include
         android:layout_width="120dp"

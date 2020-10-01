@@ -137,16 +137,22 @@ public class BluetoothClient {
 
     private static IBeaconLocationProvider<IBeacon> createDebuggingLocationProvider(IBeacon iBeacon, Beacon beacon) {
         final Location beaconLocation = new Location();
-        BeaconLoc vBeaconLoc = BeaconStore.getCurrentItem(iBeacon.getMinor());
-        Log.d("beacon","inside " + vBeaconLoc.getName());
-        //beaconLocation.setLatitude(10.0199105668819222);
-        //beaconLocation.setLongitude(76.35076967277124);
-        //beaconLocation.setAltitude(2);
-        beacon.setMajorId(iBeacon.getMajor());
-        beacon.setMinorId(iBeacon.getMinor());
-        beacon.setX(vBeaconLoc.getKx());
-        beacon.setY(vBeaconLoc.getKy());
-        beacon.setName(vBeaconLoc.getName());
+        try {
+            BeaconLoc vBeaconLoc = BeaconStore.getCurrentItem(iBeacon.getMinor());
+            Log.d("beacon","inside " + vBeaconLoc.getName());
+            beaconLocation.setLatitude(10.0199105668819222);
+            beaconLocation.setLongitude(76.35076967277124);
+            beaconLocation.setAltitude(2);
+            beacon.setMajorId(iBeacon.getMajor());
+            beacon.setMinorId(iBeacon.getMinor());
+            beacon.setX(vBeaconLoc.getKx());
+            beacon.setY(vBeaconLoc.getKy());
+            beacon.setName(vBeaconLoc.getName());
+        } catch (Exception e) {
+            beaconLocation.setLatitude(10.0199105668819222);
+            beaconLocation.setLongitude(76.35076967277124);
+            e.printStackTrace();
+        }
         /*switch (iBeacon.getMinor()) {
 
             case 58104: {

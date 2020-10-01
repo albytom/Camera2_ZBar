@@ -53,6 +53,8 @@
     <color name="md_red_A400">#FF1744</color>
     <color name="md_red_A700">#D50000</color>
 
+    <color name="md_red_A700_trans">#55D50000</color>
+
     <!-- pinks -->
     <color name="md_pink_50">#FCE4EC</color>
     <color name="md_pink_100">#F8BBD0</color>

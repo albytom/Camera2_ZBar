@@ -58,6 +58,7 @@ public class BeaconNavigateFragment extends BeaconViewFragment implements View.O
     Bitmap myBitmap, tempBitmap, path_bitmap;
     Canvas tempCanvas, path_canvas;
     Paint paint = new Paint();
+    Paint paintOut = new Paint();
     ImageView mImageView;
     private SensorEventListener sensorEventListener;
     private SensorManager sensorManager;
@@ -185,7 +186,8 @@ public class BeaconNavigateFragment extends BeaconViewFragment implements View.O
 
                         //addded for multilateration
                         locations.add(new double[][]{{Double.valueOf(beacon.getX()), Double.valueOf(beacon.getY())}});
-                        distances.add((beacon.getDistance() * 100 * .9));
+                        //distances.add((beacon.getDistance() * 100 * .9));
+                        distances.add((Math.sqrt(Math.abs(Math.pow(beacon.getDistance()*100,2)-Math.pow(1.5*100,2)))));
                     }
                     // Log.d(LOGTAG,"distance ="+beacon.getDistance());
                 }
@@ -213,14 +215,14 @@ public class BeaconNavigateFragment extends BeaconViewFragment implements View.O
                             double[] result = findNearestPixel(result_pos, digkistra_coordinates);
                             if (input_cordinates != null && !isNear) {
                                 double dis = DisatanceToDestination(result_pos, new int[]{input_cordinates[2], input_cordinates[3]});
-                                if (dis < 200) {
-                                    Toast.makeText(getActivity().getApplicationContext(), "You are " + String.format("%.2f", dis / 100) + " meter away from destination !!", Toast.LENGTH_SHORT).show();
+                                if (dis < 300) {
+                                    //Toast.makeText(getActivity().getApplicationContext(), "You are " + String.format("%.2f", dis / 100) + " meter away from destination !!", Toast.LENGTH_SHORT).show();
                                     scanBtn.setVisibility(View.VISIBLE);
                                     isNear = true;
                                 }
 
                             }
-                            if (result[2] < 100.0)
+                            if (result[2] < 300.0)
                                 drawPoint(3 * (int) result[0], 3 * (int) result[1]);
                             else
                                 drawPoint(3 * (int) localized_position.getValue()[0], 3 * (int) localized_position.getValue()[1]);
@@ -332,7 +334,7 @@ public class BeaconNavigateFragment extends BeaconViewFragment implements View.O
         super.onViewCreated(view, savedInstanceState);
         Log.d("beacon", "-----view created--------- ");
         myBitmap = BitmapFactory.decodeResource(getResources(), R.drawable.second_floor);
-        options.inScaled = true;
+        options.inScaled = false;
         bmp_mono = BitmapFactory.decodeResource(getResources(), R.drawable.second_floor_mono, options);
         itemTv = view.findViewById(R.id.i_title_tv);
         locTv = view.findViewById(R.id.i_loc_tv);
@@ -349,8 +351,11 @@ public class BeaconNavigateFragment extends BeaconViewFragment implements View.O
         //tempCanvas.drawBitmap(myBitmap, 0, 0, null);
         // paint = new Paint();
         paint.setStyle(Paint.Style.FILL);
-        paint.setColor(Color.RED);
+        paint.setColor(getResources().getColor(R.color.md_red_900));
         paint.setAntiAlias(true);
+        paintOut.setStyle(Paint.Style.FILL);
+        paintOut.setColor(getResources().getColor(R.color.md_red_A700_trans));
+        paintOut.setAntiAlias(true);
         mImageView = (ImageView) getView().findViewById(R.id.plan);
         Log.d("beacon", "view created ");
         tempBitmap = Bitmap.createBitmap(myBitmap.getWidth(), myBitmap.getHeight(), Bitmap.Config.RGB_565);
@@ -382,6 +387,7 @@ public class BeaconNavigateFragment extends BeaconViewFragment implements View.O
         coordinate_list = new double [vLocationItems.size()][2];
         int count = 0;
         for(LocationItem vLocationItem: vLocationItems){
+            Log.e(LOGTAG, "vLocationItem kX "+ vLocationItem.getKx() + " kY " + vLocationItem.getKy());
             coordinate_list[count][0] = vLocationItem.getKx();
             coordinate_list[count][1] = vLocationItem.getKy();
             count++;
@@ -429,7 +435,8 @@ public class BeaconNavigateFragment extends BeaconViewFragment implements View.O
     }
 
     private void performNavigation(int[] input_coordinates) {
-        Toast.makeText(getActivity().getApplicationContext(), "input_coordinates. 0:" + input_coordinates[0] + " 1: " + input_coordinates[1]+ " 2: " + input_coordinates[2]+ " 3: " + input_coordinates[3], Toast.LENGTH_SHORT).show();
+       // Toast.makeText(getActivity().getApplicationContext(), "input_coordinates. 0:" + input_coordinates[0] + " 1: " + input_coordinates[1]+ " 2: " + input_coordinates[2]+ " 3: " + input_coordinates[3], Toast.LENGTH_SHORT).show();
+        Log.e(LOGTAG, "input_coordinates. 0:" + input_coordinates[0] + " 1: " + input_coordinates[1]+ " 2: " + input_coordinates[2]+ " 3: " + input_coordinates[3]);
         try {
             Utils.bitmapToMat(bmp_mono, srcMat);
             output_coordinates = CvUtil.processPathPlanning(srcMat, input_coordinates);
@@ -443,7 +450,7 @@ public class BeaconNavigateFragment extends BeaconViewFragment implements View.O
                 }
                 drawRoute(arr);
                 double distance_to_travel = (output_coordinates.length / 2) / 100.0;
-                Toast.makeText(getActivity().getApplicationContext(), "Distance to travel= " + distance_to_travel + " meter", Toast.LENGTH_SHORT).show();
+                Toast.makeText(getActivity().getApplicationContext(), "Distance to travel = " + distance_to_travel + " meter", Toast.LENGTH_SHORT).show();
                 for (int i = 0; i < (output_coordinates.length - 2); i += 2) {
                     digkistra_coordinates[i / 2][0] = output_coordinates[i];
                     digkistra_coordinates[i / 2][1] = output_coordinates[i + 1];
@@ -485,7 +492,8 @@ public class BeaconNavigateFragment extends BeaconViewFragment implements View.O
         } else {
             tempCanvas.drawBitmap(copy_bmp, 0, 0, null);
         }
-        tempCanvas.drawCircle(x, y, 30, paint);
+        tempCanvas.drawCircle(x, y, 50, paint);
+        tempCanvas.drawCircle(x, y, 100, paintOut);
 
         mImageView.setImageDrawable(new BitmapDrawable(getResources(), tempBitmap));
     }
@@ -495,7 +503,7 @@ public class BeaconNavigateFragment extends BeaconViewFragment implements View.O
         Paint custom_paint = new Paint();
         custom_paint.setColor(Color.GREEN);
         custom_paint.setStyle(Paint.Style.FILL);
-        custom_paint.setStrokeWidth(30);
+        custom_paint.setStrokeWidth(40);
         paint.setAntiAlias(true);
         // tempCanvas.drawLines(array,custom_paint);
         try {

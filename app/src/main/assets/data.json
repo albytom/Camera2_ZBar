@@ -2,23 +2,23 @@
   "Data": [
     {
       "item": "Item 1",
-      "location": "A2 C1",
-      "coordinates": [425, 65]
+      "location": "A10 C1",
+      "coordinates": [670, 795]
     },
     {
       "item": "Item 2",
-      "location": "A5 C2",
-      "coordinates": [60, 625]
+      "location": "A1 C7",
+      "coordinates": [1613, 692]
     },
     {
       "item": "Item 3",
-      "location": "A1 C6",
-      "coordinates": [1460, 240]
+      "location": "A5 C1",
+      "coordinates": [2193, 300]
     },
     {
       "item": "Item 4",
-      "location": "A3 R2",
-      "coordinates": [2430, 630]
+      "location": "A15 C5",
+      "coordinates": [185, 795]
     }
   ]
 }

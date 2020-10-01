@@ -17,6 +17,7 @@ import android.widget.FrameLayout;
 import androidx.annotation.NonNull;
 import androidx.appcompat.app.AppCompatActivity;
 import androidx.core.app.ActivityCompat;
+import androidx.fragment.app.Fragment;
 
 import com.example.android.camera2basic.bluetooth.BluetoothClient;
 import com.example.android.camera2basic.callback.CameraCallBackListener;
@@ -238,20 +239,33 @@ public class PathPlanActivity extends AppCompatActivity implements CameraCallBac
 
     @Override
     public void onCameraCallBack() {
+        Fragment fragment = getSupportFragmentManager().findFragmentByTag("cameraFragment");
+        if(fragment != null)
+            getSupportFragmentManager().beginTransaction().remove(fragment).commit();
         BeaconNavigateFragment nextFrag = new BeaconNavigateFragment();
         getSupportFragmentManager().beginTransaction()
                 .replace(R.id.container, nextFrag, "navigateFragment")
-                .addToBackStack(null)
+                .addToBackStack("navigateFragment")
                 .commit();
         GlobalConstants.MODE = "navigateFragment";
+        // observe bluetooth
+        if (!BluetoothClient.isBluetoothEnabled()) {
+            requestBluetooth();
+        }
+        BluetoothClient.startScanning();
     }
 
     @Override
     public void onNavigateCallBack() {
+        Fragment fragment = getSupportFragmentManager().findFragmentByTag("navigateFragment");
+        if(fragment != null)
+            getSupportFragmentManager().beginTransaction().remove(fragment).commit();
         getSupportFragmentManager().beginTransaction()
                 .replace(R.id.container, Camera2BasicFragment.newInstance(), "cameraFragment")
-                .addToBackStack(null)
+                .addToBackStack("cameraFragment")
                 .commit();
         GlobalConstants.MODE = "cameraFragment";
+        // stop observing bluetooth
+        BluetoothClient.stopScanning();
     }
 }
