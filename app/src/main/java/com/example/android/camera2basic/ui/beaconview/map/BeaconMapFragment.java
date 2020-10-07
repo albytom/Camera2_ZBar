@@ -13,7 +13,6 @@ import android.view.ViewGroup;
 import androidx.annotation.CallSuper;
 
 import com.example.android.camera2basic.R;
-import com.example.android.camera2basic.location.AndroidLocationProvider;
 import com.example.android.camera2basic.ui.beaconview.BeaconViewFragment;
 import com.nexenio.bleindoorpositioning.IndoorPositioning;
 import com.nexenio.bleindoorpositioning.ble.beacon.Beacon;
@@ -46,11 +45,11 @@ public class BeaconMapFragment extends BeaconViewFragment {
                     beaconMap.setPredictedDeviceLocation(IndoorPositioning.getLocationPredictor().getLocation());
                     beaconMap.fitToCurrentLocations();
                     Log.d("beacon","Location updated after trilateration");
-                } else if (locationProvider instanceof AndroidLocationProvider) {
+                }/* else if (locationProvider instanceof AndroidLocationProvider) {
                     // TODO: remove artificial noise
                     //location.setLatitude(location.getLatitude() + Math.random() * 0.0002);
                     //location.setLongitude(location.getLongitude() + Math.random() * 0.0002);
-                }
+                }*/
             }
         };
     }

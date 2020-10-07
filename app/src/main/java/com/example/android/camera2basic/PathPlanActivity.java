@@ -1,9 +1,15 @@
 package com.example.android.camera2basic;
 
 import android.Manifest;
+import android.app.Activity;
+import android.content.Context;
 import android.content.Intent;
+import android.content.IntentSender;
 import android.content.pm.PackageManager;
+import android.os.Build;
 import android.os.Bundle;
+import android.provider.Settings;
+import android.text.TextUtils;
 import android.util.DisplayMetrics;
 import android.util.Log;
 import android.view.Menu;
@@ -25,6 +31,17 @@ import com.example.android.camera2basic.callback.NavigateCallBackListener;
 import com.example.android.camera2basic.location.AndroidLocationProvider;
 import com.example.android.camera2basic.ui.beaconview.pathplanning.BeaconNavigateFragment;
 import com.example.android.camera2basic.util.GlobalConstants;
+import com.google.android.gms.common.api.ApiException;
+import com.google.android.gms.common.api.CommonStatusCodes;
+import com.google.android.gms.common.api.ResolvableApiException;
+import com.google.android.gms.location.LocationServices;
+import com.google.android.gms.location.LocationSettingsRequest;
+import com.google.android.gms.location.LocationSettingsResponse;
+import com.google.android.gms.location.LocationSettingsStatusCodes;
+import com.google.android.gms.location.SettingsClient;
+import com.google.android.gms.tasks.OnFailureListener;
+import com.google.android.gms.tasks.OnSuccessListener;
+import com.google.android.gms.tasks.Task;
 import com.google.android.material.bottomnavigation.BottomNavigationView;
 import com.google.android.material.snackbar.Snackbar;
 import com.nexenio.bleindoorpositioning.location.Location;
@@ -39,7 +56,8 @@ public class PathPlanActivity extends AppCompatActivity implements CameraCallBac
     private static final String TAG = "beacon";
 
     private FrameLayout mFrameLayout;
-    private BottomNavigationView bottomNavigationView;
+    public static final int REQUEST_CODE_LOCATION_PERMISSIONS = 1;
+    public static final int REQUEST_CODE_LOCATION_SETTINGS = 2;
 
     static {
         if (!OpenCVLoader.initDebug()) {
@@ -76,7 +94,8 @@ public class PathPlanActivity extends AppCompatActivity implements CameraCallBac
         float density = displayMetrics.densityDpi;
         Log.e("Density", " densityDpi: " + density + " W: " + GlobalConstants.REAL_SCR_WIDTH + " H: " + GlobalConstants.REAL_SCR_HEIGHT);
         // setup locationc
-        AndroidLocationProvider.initialize(this);
+        //AndroidLocationProvider.initialize(this);
+        setupLocationService();
 
         // setup bluetooth
         BluetoothClient.initialize(this);
@@ -127,13 +146,13 @@ public class PathPlanActivity extends AppCompatActivity implements CameraCallBac
 
         if (GlobalConstants.MODE.equalsIgnoreCase("navigateFragment")) {
             // observe location
-            if (!AndroidLocationProvider.hasLocationPermission(this)) {
-                AndroidLocationProvider.requestLocationPermission(this);
-            } else if (!AndroidLocationProvider.isLocationEnabled(this)) {
+            if (!hasLocationPermission(this)) {
+                requestLocationPermission(this);
+            } else if (!isLocationEnabled(this)) {
                 requestLocationServices();
             }
-            AndroidLocationProvider.startRequestingLocationUpdates();
-            AndroidLocationProvider.requestLastKnownLocation();
+            //AndroidLocationProvider.startRequestingLocationUpdates();
+            //AndroidLocationProvider.requestLastKnownLocation();
             // observe bluetooth
             if (!BluetoothClient.isBluetoothEnabled()) {
                 requestBluetooth();
@@ -141,7 +160,7 @@ public class PathPlanActivity extends AppCompatActivity implements CameraCallBac
             BluetoothClient.startScanning();
         }
         if (GlobalConstants.MODE.equalsIgnoreCase("cameraFragment")) {
-            AndroidLocationProvider.stopRequestingLocationUpdates();
+            //AndroidLocationProvider.stopRequestingLocationUpdates();
             Log.d(TAG, "on pause to stop scan");
             // stop observing bluetooth
             BluetoothClient.stopScanning();
@@ -154,7 +173,7 @@ public class PathPlanActivity extends AppCompatActivity implements CameraCallBac
     @Override
     protected void onPause() {
         // stop observing location
-        AndroidLocationProvider.stopRequestingLocationUpdates();
+        //AndroidLocationProvider.stopRequestingLocationUpdates();
         Log.d(TAG, "on pause to stop scan");
         // stop observing bluetooth
         BluetoothClient.stopScanning();
@@ -165,7 +184,7 @@ public class PathPlanActivity extends AppCompatActivity implements CameraCallBac
     @Override
     public void onRequestPermissionsResult(int requestCode, @NonNull String[] permissions, @NonNull int[] grantResults) {
         switch (requestCode) {
-            case AndroidLocationProvider.REQUEST_CODE_LOCATION_PERMISSIONS: {
+            /*case AndroidLocationProvider.REQUEST_CODE_LOCATION_PERMISSIONS: {
                 if (grantResults.length > 0 && grantResults[0] == PackageManager.PERMISSION_GRANTED) {
                     Log.d(TAG, "Location permission granted");
                     AndroidLocationProvider.startRequestingLocationUpdates();
@@ -173,7 +192,7 @@ public class PathPlanActivity extends AppCompatActivity implements CameraCallBac
                     Log.d(TAG, "Location permission not granted. Wut?");
                 }
                 break;
-            }
+            }*/
         }
     }
 
@@ -203,7 +222,7 @@ public class PathPlanActivity extends AppCompatActivity implements CameraCallBac
         snackbar.setAction(R.string.action_enable, new View.OnClickListener() {
             @Override
             public void onClick(View view) {
-                AndroidLocationProvider.requestLocationEnabling(PathPlanActivity.this);
+                //AndroidLocationProvider.requestLocationEnabling(PathPlanActivity.this);
             }
         });
         snackbar.show();
@@ -267,5 +286,70 @@ public class PathPlanActivity extends AppCompatActivity implements CameraCallBac
         GlobalConstants.MODE = "cameraFragment";
         // stop observing bluetooth
         BluetoothClient.stopScanning();
+    }
+
+    public static boolean hasLocationPermission(@NonNull Context context) {
+        boolean fineLocation = ActivityCompat.checkSelfPermission(context, Manifest.permission.ACCESS_FINE_LOCATION) == PackageManager.PERMISSION_GRANTED;
+        boolean coarseLocation = ActivityCompat.checkSelfPermission(context, Manifest.permission.ACCESS_COARSE_LOCATION) == PackageManager.PERMISSION_GRANTED;
+        return fineLocation && coarseLocation;
+    }
+
+    public static void requestLocationPermission(@NonNull Activity activity) {
+        Log.d(TAG, "Requesting location permission");
+        ActivityCompat.requestPermissions(activity, new String[]{
+                Manifest.permission.ACCESS_FINE_LOCATION,
+                Manifest.permission.ACCESS_COARSE_LOCATION
+        }, REQUEST_CODE_LOCATION_PERMISSIONS);
+    }
+
+    public static boolean isLocationEnabled(@NonNull Context context) {
+        if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.KITKAT) {
+            try {
+                int locationMode = Settings.Secure.getInt(context.getContentResolver(), Settings.Secure.LOCATION_MODE);
+                return locationMode != Settings.Secure.LOCATION_MODE_OFF;
+            } catch (Settings.SettingNotFoundException e) {
+                Log.e(TAG, "Unable to get location mode");
+                e.printStackTrace();
+                return false;
+            }
+        } else {
+            String locationProviders = Settings.Secure.getString(context.getContentResolver(), Settings.Secure.LOCATION_PROVIDERS_ALLOWED);
+            return !TextUtils.isEmpty(locationProviders);
+        }
+    }
+
+    private void setupLocationService() {
+        Log.v(TAG, "Setting up location service");
+        LocationSettingsRequest.Builder builder = new LocationSettingsRequest.Builder();
+        SettingsClient client = LocationServices.getSettingsClient(PathPlanActivity.this);
+        Task<LocationSettingsResponse> task = client.checkLocationSettings(builder.build());
+
+        task.addOnSuccessListener(PathPlanActivity.this, new OnSuccessListener<LocationSettingsResponse>() {
+            @Override
+            public void onSuccess(LocationSettingsResponse locationSettingsResponse) {
+                Log.v(TAG, "Location settings satisfied");
+            }
+        });
+
+        task.addOnFailureListener(PathPlanActivity.this, new OnFailureListener() {
+            @Override
+            public void onFailure(@NonNull Exception e) {
+                int statusCode = ((ApiException) e).getStatusCode();
+                switch (statusCode) {
+                    case CommonStatusCodes.RESOLUTION_REQUIRED:
+                        Log.w(TAG, "Location settings not satisfied, attempting resolution intent");
+                        try {
+                            ResolvableApiException resolvable = (ResolvableApiException) e;
+                            resolvable.startResolutionForResult(PathPlanActivity.this, REQUEST_CODE_LOCATION_SETTINGS);
+                        } catch (IntentSender.SendIntentException sendIntentException) {
+                            Log.e(TAG, "Unable to start resolution intent");
+                        }
+                        break;
+                    case LocationSettingsStatusCodes.SETTINGS_CHANGE_UNAVAILABLE:
+                        Log.w(TAG, "Location settings not satisfied and can't be changed");
+                        break;
+                }
+            }
+        });
     }
 }

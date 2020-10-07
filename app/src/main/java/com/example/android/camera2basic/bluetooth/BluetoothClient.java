@@ -137,6 +137,7 @@ public class BluetoothClient {
 
     private static IBeaconLocationProvider<IBeacon> createDebuggingLocationProvider(IBeacon iBeacon, Beacon beacon) {
         final Location beaconLocation = new Location();
+        Log.d("beacon","outside " + iBeacon.getMinor());
         try {
             BeaconLoc vBeaconLoc = BeaconStore.getCurrentItem(iBeacon.getMinor());
             Log.d("beacon","inside " + vBeaconLoc.getName());

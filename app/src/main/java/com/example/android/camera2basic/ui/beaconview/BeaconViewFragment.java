@@ -82,8 +82,8 @@ public abstract class BeaconViewFragment extends Fragment {
         super.onAttach(context);
         IndoorPositioning.getInstance().setIndoorPositioningBeaconFilter(uuidFilter);
         IndoorPositioning.registerLocationListener(deviceLocationListener);
-        AndroidLocationProvider.registerLocationListener(deviceLocationListener);
-        AndroidLocationProvider.requestLastKnownLocation();
+        //AndroidLocationProvider.registerLocationListener(deviceLocationListener);
+        //AndroidLocationProvider.requestLastKnownLocation();
         BeaconManager.registerBeaconUpdateListener(beaconUpdateListener);
     }
 
@@ -91,7 +91,7 @@ public abstract class BeaconViewFragment extends Fragment {
     @Override
     public void onDetach() {
         IndoorPositioning.unregisterLocationListener(deviceLocationListener);
-        AndroidLocationProvider.unregisterLocationListener(deviceLocationListener);
+        //AndroidLocationProvider.unregisterLocationListener(deviceLocationListener);
         BeaconManager.unregisterBeaconUpdateListener(beaconUpdateListener);
         super.onDetach();
     }

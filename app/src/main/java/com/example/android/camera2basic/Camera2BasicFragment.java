@@ -117,10 +117,9 @@ public class Camera2BasicFragment extends Fragment
     private static final SparseIntArray ORIENTATIONS = new SparseIntArray();
     private static final int REQUEST_CAMERA_PERMISSION = 1;
     private static final String FRAGMENT_DIALOG = "dialog";
-    public float finger_spacing = 0;
     private float mZoom_level = 0;
     private TextView zoom1, zoom2, zoom3, bCodeTv, itemTv, locTv;
-    CheckBox isFoundCv;
+    private CheckBox isFoundCv;
     private Button prevBtn, nextBtn;
 
     private Bitmap mBitmap;
@@ -132,7 +131,6 @@ public class Camera2BasicFragment extends Fragment
     private RectF mClipRectRatio;
     String mResult = null;
     int mCount = 0;
-    private static int imgCount = 0;
 
     private CameraCallBackListener mCameraCallBackListener;
 
@@ -311,11 +309,8 @@ public class Camera2BasicFragment extends Fragment
 
         @Override
         public void onImageAvailable(ImageReader reader) {
-            //displayBarcodeOld(reader.acquireNextImage());
-            //printBarcodeToConsole(reader.acquireNextImage());
             Image pImage = reader.acquireNextImage();
             if (mCapCounter == 7) {
-                //mZbarDataList = new ArrayList<>();
                 printBarcodeToConsole(pImage);
                 mCapCounter = 0;
             } else {
@@ -549,11 +544,6 @@ public class Camera2BasicFragment extends Fragment
         mBarcodeRectDrawView = view.findViewById(R.id.draw_rect_view);
         mZbarDataList = new ArrayList<ZbarData>();
         mDataStore = DataStore.getInstance();
-        /*if (DataStore.getItemDataPickedList().size() < 1) {
-            mItemDataArrayList = mDataStore.getItemDataArrayList();
-        } else {
-            mItemDataArrayList = mDataStore.getPendingItems();
-        }*/
 
         if (DataStore.getCount() > 1) {
             nextBtn.setText(getResources().getString(R.string.next));
@@ -1061,9 +1051,6 @@ public class Camera2BasicFragment extends Fragment
     @Override
     public void onClick(View view) {
         switch (view.getId()) {
-            /*case R.id.scan_btn:
-                takePicture();
-                break;*/
             case R.id.zoom_l1:
                 zoom1.setBackground(getActivity().getResources().getDrawable(R.drawable.circle_press_bg));
                 zoom2.setBackground(getActivity().getResources().getDrawable(R.drawable.circle_bg));
@@ -1110,22 +1097,12 @@ public class Camera2BasicFragment extends Fragment
         }
     }
 
-    private void loadNavigateFragment(){
-        BeaconNavigateFragment nextFrag= new BeaconNavigateFragment();
-        getActivity().getSupportFragmentManager().beginTransaction()
-                .replace(R.id.container, nextFrag, "navigateFragment")
-                .addToBackStack(null)
-                .commit();
-        GlobalConstants.MODE = "navigateFragment";
-    }
-
     private void nextButtonClick() {
         setDataToList();
         if (DataStore.getmPosition() < DataStore.getCount() - 1) {
                 DataStore.setmPosition(DataStore.getmPosition() + 1);
                 setItemData(DataStore.getmPosition());
                 mCameraCallBackListener.onCameraCallBack();
-                //loadNavigateFragment();
         } else {
             Intent intent = new Intent(getContext(), HomeActivity.class);
             intent.putExtra("data", "data");
@@ -1145,20 +1122,10 @@ public class Camera2BasicFragment extends Fragment
             //setDataToLocalList(itemData);
             if (DataStore.hasItemDataPickedList(itemData)) {
                 DataStore.setItemDataPickedList(itemData);
-            } /*else {
-                DataStore.addItemDataPickedList(itemData);
-            }*/
+            }
         }
 
     }
-
-   /* private void setDataToLocalList(ItemData itemData) {
-        for (int j = 0; j < mItemDataArrayList.size(); j++) {
-            if (mItemDataArrayList.get(j).getId() == itemData.getId()) {
-                mItemDataArrayList.set(j, itemData);
-            }
-        }
-    }*/
 
     private void setAutoFlash(CaptureRequest.Builder requestBuilder) {
         if (mFlashSupported) {
@@ -1387,7 +1354,6 @@ public class Camera2BasicFragment extends Fragment
                     })
                     .create();
         }
-
     }
 
     /**
