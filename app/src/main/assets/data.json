@@ -2,22 +2,22 @@
   "Data": [
     {
       "item": "Item 1",
-      "location": "A10 C1",
+      "location": "A9 C1",
       "coordinates": [670, 795]
     },
     {
       "item": "Item 2",
       "location": "A1 C7",
-      "coordinates": [1613, 692]
+      "coordinates": [1615, 560]
     },
     {
       "item": "Item 3",
       "location": "A5 C1",
-      "coordinates": [2193, 300]
+      "coordinates": [2435, 400]
     },
     {
       "item": "Item 4",
-      "location": "A15 C5",
+      "location": "A14 C5",
       "coordinates": [185, 795]
     }
   ]
